@@ -46,12 +46,9 @@ class Module extends BaseModule implements BootstrapInterface
         $config = new Configuration();
         $config->setApiKey('token', $this->token);
 
-        Yii::debug('configured with token: ' . $this->token, __METHOD__);
-
-        Yii::debug($config, __METHOD__);
         Configuration::setDefaultConfiguration($config);
 
-        $this->setConfig((new ConfigApi())->config());
+        $this->setConfig((new ConfigApi(null, Configuration::getDefaultConfiguration()))->config());
 
         Yii::debug($this->config, __METHOD__);
         

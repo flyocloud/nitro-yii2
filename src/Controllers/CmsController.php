@@ -3,6 +3,7 @@
 namespace Flyo\Yii\Controllers;
 
 use Flyo\Api\PagesApi;
+use Flyo\Configuration;
 use Flyo\Yii\Module;
 use Yii;
 use yii\helpers\Url;
@@ -18,9 +19,9 @@ class CmsController extends Controller
         $pathOrSlug = Yii::$app->request->pathInfo;
 
         if (empty($pathOrSlug)) {
-            $page = (new PagesApi())->home();
+            $page = (new PagesApi(null, Configuration::getDefaultConfiguration()))->home();
         } else {
-            $page = (new PagesApi())->page($pathOrSlug);
+            $page = (new PagesApi(null, Configuration::getDefaultConfiguration()))->page($pathOrSlug);
         }
 
         $this->view->title = $page->getMetaJson()->getTitle();
