@@ -6,6 +6,19 @@ use Flyo\Model\PagesInner;
 use Flyo\Yii\Module;
 use yii\base\Widget;
 
+/**
+ * Nav
+ * 
+ * ```php
+ * <?php $nav = NavWidget::begin(); ?>
+ *       <ul>
+ *       <?php foreach ($nav->getItems() as $item): ?>
+ *           <li><?= Html::a($item->getLabel(), $item->getPath()); ?></li>
+ *       <?php endforeach; ?>
+ *       </ul>
+ *   <?php $nav::end(); ?>
+ * ```
+ */
 class NavWidget extends Widget
 {
     public function init()

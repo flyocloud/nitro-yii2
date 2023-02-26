@@ -35,3 +35,17 @@ print_r($block->getConfig());
 print_r($block->getItems());
 print_r($block->getSlots());
 ```
+
+## Layout
+
+Generate a navigation in the layout file, use the `NavWidget`:
+
+```php
+<?php $nav = NavWidget::begin(); ?>
+    <ul>
+        <?php foreach ($nav->getItems() as $item): ?>
+            <li><?= Html::a($item->getLabel(), $item->getPath()); ?></li>
+        <?php endforeach; ?>
+    </ul>
+<?php $nav::end(); ?>
+```
