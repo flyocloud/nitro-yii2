@@ -9,9 +9,9 @@ class BlockWidget extends Widget
 {
     public Block $block;
 
-    public function render($view, $params = [])
+    public function run()
     {
-        return $this->render('@app/flyo/'. $this->block->getComponent(), [
+        return $this->render('@app/views/flyo/'. $this->block->getComponent(), [
             'block' => $this->block,
         ]);
     }

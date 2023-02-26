@@ -18,9 +18,12 @@ add the module to your config
 add the cms page resolve to your views in the folder `/views/cms.php`, all the routes from flyo nitro will now be resolved into this view file:
 
 ```php
+<?php
+use Flyo\Yii\Widgets\PageWidget;
 /** @var \Flyo\Model\Page $page */
-<h1><?= $page->getTitle(); ?></h1>
-Flyo\Yii\Widgets\PageWidget::widget(['page' => $page]);
+?>
+<h1><?= $page->getTitle(); ?>
+<?= PageWidget::widget(['page' => $page]); ?>
 ```
 
 In order to render those blocks use the `Flyo\Yii\Widgets\PageWidget` which will lookup all blocks inside the folder `/views/flyo/*`, so for instance you have a `HeroTeaser` component defined in flyo the view file is stored in `/views/flyo/HeroTeaser.php` with example content:

@@ -9,7 +9,7 @@ class PageWidget extends Widget
 {
     public Page $page;
 
-    public function render($view, $params = [])
+    public function run()
     {
         $content = '';
         foreach ($this->page->getJson() as $block) {
