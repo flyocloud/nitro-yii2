@@ -6,6 +6,7 @@ use Exception;
 use Flyo\Api\ConfigApi;
 use Flyo\Configuration;
 use Flyo\Model\Config200Response;
+use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\base\Module as BaseModule;
@@ -45,8 +46,12 @@ class Module extends BaseModule implements BootstrapInterface
         $config = new Configuration();
         $config->setApiKey('token', $this->token);
 
+        Configuration::setDefaultConfiguration($config);
+
         $this->setConfig((new ConfigApi())->config());
 
+        Yii::debug($this->config, __METHOD__);
+        
         $rules = [];
         foreach($this->config->getPages() as $page) {
             $rules["GET {$page}"] = "{$this->id}/cms/index";
