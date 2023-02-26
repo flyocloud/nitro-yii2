@@ -1,0 +1,36 @@
+{
+    "name": "flyo/nitrocms-yii2",
+    "description": "Flyo Nitro Headless CMS",
+    "type": "yii2-extension",
+    "require": {
+        "flyo/nitrocms-php" : "dev-main",
+        "yiisoft/yii2": "^2.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Flyo\\Yii\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Basil Suter",
+            "email": "git@nadar.io"
+        }
+    ],
+    "config": {
+        "fxp-asset": {
+            "enabled": false
+        },
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "luyadev/luya-composer": true
+        }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ]
+}
