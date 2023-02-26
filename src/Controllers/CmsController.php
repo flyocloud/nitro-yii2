@@ -21,11 +21,13 @@ class CmsController extends Controller
 
         Yii::debug('flyo resolve route: ' . $pathOrSlug, __METHOD__);
 
+        Yii::beginProfile('flyo-page-'.$pathOrSlug, __METHOD__);
         if (empty($pathOrSlug)) {
             $page = (new PagesApi(null, Configuration::getDefaultConfiguration()))->home();
         } else {
             $page = (new PagesApi(null, Configuration::getDefaultConfiguration()))->page($pathOrSlug);
         }
+        Yii::endProfile('flyo-page-'.$pathOrSlug, __METHOD__);
 
         if (!$page) {
             throw new NotFoundHttpException("Unable to find the given route");

@@ -48,7 +48,9 @@ class Module extends BaseModule implements BootstrapInterface
 
         Configuration::setDefaultConfiguration($config);
 
+        Yii::beginProfile('flyo-config', __METHOD__);
         $this->setConfig((new ConfigApi(null, Configuration::getDefaultConfiguration()))->config());
+        Yii::endProfile('flyo-config', __METHOD__);
         
         $rules = [];
         foreach($this->config->getPages() as $page) {
