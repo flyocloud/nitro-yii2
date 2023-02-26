@@ -8,6 +8,7 @@ use Flyo\Yii\Module;
 use Yii;
 use yii\helpers\Url;
 use yii\web\Controller;
+use yii\web\NotFoundHttpException;
 
 /**
  * @property Module $module
@@ -18,10 +19,16 @@ class CmsController extends Controller
     {
         $pathOrSlug = Yii::$app->request->pathInfo;
 
+        Yii::debug('flyo resolve route: ' . $pathOrSlug, __METHOD__);
+
         if (empty($pathOrSlug)) {
             $page = (new PagesApi(null, Configuration::getDefaultConfiguration()))->home();
         } else {
             $page = (new PagesApi(null, Configuration::getDefaultConfiguration()))->page($pathOrSlug);
+        }
+
+        if (!$page) {
+            throw new NotFoundHttpException("Unable to find the given route");
         }
 
         $this->view->title = $page->getMetaJson()->getTitle();
