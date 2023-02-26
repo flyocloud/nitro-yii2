@@ -2,6 +2,7 @@
 
 namespace Flyo\Yii\Widgets;
 
+use Flyo\Model\PagesInner;
 use Flyo\Yii\Module;
 use yii\base\Widget;
 
@@ -13,9 +14,12 @@ class NavWidget extends Widget
         ob_start();
     }
 
+    /**
+     * @return PagesInner[]
+     */
     public function getItems() : array
     {
-        return Module::getInstance()->getConfig()->getPages();
+        return Module::getInstance()->getConfig()->getNav()->getItems();
     }
 
     public function run()
