@@ -33,7 +33,7 @@ class CmsController extends Controller
 
         $this->view->title = $page->getMetaJson()->getTitle();
 
-        $this->render('@app/views/cms', [
+        return $this->render('@app/views/cms', [
             'page' => $page,
         ]);
     }
