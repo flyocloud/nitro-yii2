@@ -16,7 +16,7 @@ use yii\base\Module as BaseModule;
  */
 class Module extends BaseModule implements BootstrapInterface
 {
-    public $controllerNamespace = 'Controllers';
+    public $controllerNamespace = 'Flyo\Yii\Controllers';
     
     public $token;
 
@@ -49,11 +49,10 @@ class Module extends BaseModule implements BootstrapInterface
         Configuration::setDefaultConfiguration($config);
 
         $this->setConfig((new ConfigApi(null, Configuration::getDefaultConfiguration()))->config());
-
-        Yii::debug($this->config, __METHOD__);
         
         $rules = [];
         foreach($this->config->getPages() as $page) {
+            Yii::debug('register page route: ' . $page, __METHOD__);
             $rules["GET {$page}"] = "{$this->id}/cms/index";
         }
 
