@@ -6,7 +6,6 @@ use Flyo\Api\PagesApi;
 use Flyo\Configuration;
 use Flyo\Yii\Module;
 use Yii;
-use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 

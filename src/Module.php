@@ -5,14 +5,14 @@ namespace Flyo\Yii;
 use Exception;
 use Flyo\Api\ConfigApi;
 use Flyo\Configuration;
-use Flyo\Model\Config200Response;
+use Flyo\Model\ConfigResponse;
 use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\base\Module as BaseModule;
 
 /**
- * @property Config200Response $config
+ * @property ConfigResponse $config
  */
 class Module extends BaseModule implements BootstrapInterface
 {
@@ -31,12 +31,12 @@ class Module extends BaseModule implements BootstrapInterface
 
     private $_config;
 
-    public function setConfig(Config200Response $config)
+    public function setConfig(ConfigResponse $config)
     {
         $this->_config = $config;
     }
 
-    public function getConfig() : Config200Response
+    public function getConfig() : ConfigResponse
     {
         return $this->_config;
     }
