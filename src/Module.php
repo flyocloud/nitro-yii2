@@ -55,7 +55,7 @@ class Module extends BaseModule implements BootstrapInterface
         $rules = [];
         foreach($this->config->getPages() as $page) {
             Yii::debug('register page route: ' . $page, __METHOD__);
-            $rules["GET {$page}"] = "{$this->id}/cms/index";
+            $rules["GET {$page}"] = "{$this->id}/nitro/index";
         }
 
         $app->urlManager->addRules($rules);

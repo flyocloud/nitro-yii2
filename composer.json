@@ -1,9 +1,9 @@
 {
-    "name": "flyo/nitrocms-yii2",
-    "description": "Flyo Nitro Headless CMS",
+    "name": "flyo/nitro-yii2",
+    "description": "Flyo Nitro Yii2 Framework Module",
     "type": "yii2-extension",
     "require": {
-        "flyo/nitrocms-php" : "dev-main",
+        "flyo/nitro-php" : "dev-main",
         "yiisoft/yii2": "^2.0"
     },
     "license": "MIT",

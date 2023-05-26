@@ -12,7 +12,7 @@ use yii\web\NotFoundHttpException;
 /**
  * @property Module $module
  */
-class CmsController extends Controller
+class NitroController extends Controller
 {
     public function actionIndex()
     {
@@ -34,7 +34,7 @@ class CmsController extends Controller
 
         $this->view->title = $page->getMetaJson()->getTitle();
 
-        return $this->render('@app/views/cms', [
+        return $this->render('@app/views/nitro', [
             'page' => $page,
         ]);
     }

@@ -1,7 +1,7 @@
-# Flyo Nitro CMS Yii2
+# Flyo Nitro Yii2 Framework Module
 
 ```
-composer require flyo/nitrocms-yii2
+composer require flyo/nitro-yii2
 ```
 
 add the module to your config
@@ -15,7 +15,7 @@ add the module to your config
 ]
 ```
 
-add the cms page resolve to your views in the folder `/views/cms.php`, all the routes from flyo nitro will now be resolved into this view file:
+add the cms page resolve to your views in the folder `/views/nitro.php`, all the routes from flyo nitro will now be resolved into this view file:
 
 ```php
 <?php
