@@ -212,12 +212,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/flyocloud/nitro-php-sdk.git",
-                "reference": "367dc410922cb0308cf851b679aa706777111c09"
+                "reference": "c8825b483e6e733c08ec2b71ef6c449be0c21e28"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/flyocloud/nitro-php-sdk/zipball/367dc410922cb0308cf851b679aa706777111c09",
-                "reference": "367dc410922cb0308cf851b679aa706777111c09",
+                "url": "https://api.github.com/repos/flyocloud/nitro-php-sdk/zipball/c8825b483e6e733c08ec2b71ef6c449be0c21e28",
+                "reference": "c8825b483e6e733c08ec2b71ef6c449be0c21e28",
                 "shasum": ""
             },
             "require": {
@@ -258,7 +258,7 @@
                 "issues": "https://github.com/flyocloud/nitro-php-sdk/issues",
                 "source": "https://github.com/flyocloud/nitro-php-sdk/tree/main"
             },
-            "time": "2023-05-26T14:23:27+00:00"
+            "time": "2023-05-30T10:59:57+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -841,16 +841,16 @@
         },
         {
             "name": "symfony/deprecation-contracts",
-            "version": "v3.2.1",
+            "version": "v3.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "e2d1534420bd723d0ef5aec58a22c5fe60ce6f5e"
+                "reference": "7c3aff79d10325257a001fcf92d991f24fc967cf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/e2d1534420bd723d0ef5aec58a22c5fe60ce6f5e",
-                "reference": "e2d1534420bd723d0ef5aec58a22c5fe60ce6f5e",
+                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/7c3aff79d10325257a001fcf92d991f24fc967cf",
+                "reference": "7c3aff79d10325257a001fcf92d991f24fc967cf",
                 "shasum": ""
             },
             "require": {
@@ -859,7 +859,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "3.3-dev"
+                    "dev-main": "3.4-dev"
                 },
                 "thanks": {
                     "name": "symfony/contracts",
@@ -888,7 +888,7 @@
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.2.1"
+                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.3.0"
             },
             "funding": [
                 {
@@ -904,7 +904,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-03-01T10:25:55+00:00"
+            "time": "2023-05-23T14:45:45+00:00"
         },
         {
             "name": "yiisoft/yii2",
