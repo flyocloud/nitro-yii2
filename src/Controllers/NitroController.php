@@ -6,6 +6,7 @@ use Flyo\Api\PagesApi;
 use Flyo\Configuration;
 use Flyo\Yii\Module;
 use Yii;
+use yii\filters\PageCache;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
@@ -14,6 +15,20 @@ use yii\web\NotFoundHttpException;
  */
 class NitroController extends Controller
 {
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => PageCache::class,
+                'enabled' => YII_ENV_PROD,
+                'duration' => 0,
+                'variations' => [
+                    Module::getInstance()->getConfig()->getNitro()->getVersion(),
+                ];
+            ]
+        ];
+    }
+    
     public function actionIndex()
     {
         $pathOrSlug = Yii::$app->request->pathInfo;
@@ -33,6 +48,25 @@ class NitroController extends Controller
         }
 
         $this->view->title = $page->getMetaJson()->getTitle();
+        $this->view->registerMetaTag([
+            'property' => 'og:title',
+            'content' => $page->getMetaJson()->getTitle()
+        ]);
+
+        $this->view->registerMetaTag([
+            'name' => 'description',
+            'content' => $page->getMetaJson()->getDescription(),
+        ]);
+
+        $this->view->registerMetaTag([
+            'property' => 'og:description',
+            'content' => $page->getMetaJson()->getDescription()
+        ]);
+        
+        $this->view->registerMetaTag([
+            'property' => 'og:image',
+            'content' => $page->getMetaJson()->getImage()
+        ]);
 
         return $this->render('@app/views/nitro', [
             'page' => $page,
