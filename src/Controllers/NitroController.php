@@ -24,7 +24,7 @@ class NitroController extends Controller
                 'duration' => 0,
                 'variations' => [
                     Module::getInstance()->getConfig()->getNitro()->getVersion(),
-                ];
+                ],
             ]
         ];
     }
