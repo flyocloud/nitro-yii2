@@ -1,6 +1,6 @@
 # Flyo Nitro Yii2 Framework Module
 
-```
+```sh
 composer require flyo/nitro-yii2
 ```
 
@@ -49,3 +49,7 @@ Generate a navigation in the layout file, use the `NavWidget`:
     </ul>
 <?php $nav::end(); ?>
 ```
+
+## Documentation
+
+[Read More in the Docs](https://dev.flyo.cloud/nitro/php)
