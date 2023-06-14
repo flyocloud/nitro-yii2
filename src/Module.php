@@ -10,6 +10,7 @@ use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\base\Module as BaseModule;
+use yii\web\UrlRule;
 
 /**
  * @property ConfigResponse $config
@@ -54,8 +55,7 @@ class Module extends BaseModule implements BootstrapInterface
         
         $rules = [];
         foreach($this->config->getPages() as $page) {
-            Yii::debug('register page route: ' . $page, __METHOD__);
-            $rules["GET {$page}"] = "{$this->id}/nitro/index";
+            $rules[] = new UrlRule(['verb' => 'GET', 'pattern' => '<path:('.$page.')>', 'route' => "{$this->id}/nitro/index"]);
         }
 
         $app->urlManager->addRules($rules);
