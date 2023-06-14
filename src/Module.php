@@ -6,6 +6,7 @@ use Exception;
 use Flyo\Api\ConfigApi;
 use Flyo\Configuration;
 use Flyo\Model\ConfigResponse;
+use Flyo\Model\Page;
 use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
@@ -14,6 +15,7 @@ use yii\web\UrlRule;
 
 /**
  * @property ConfigResponse $config
+ * @property Page $currentPage
  */
 class Module extends BaseModule implements BootstrapInterface
 {
@@ -40,6 +42,18 @@ class Module extends BaseModule implements BootstrapInterface
     public function getConfig() : ConfigResponse
     {
         return $this->_config;
+    }
+
+    private $_currentPage;
+
+    public function setCurrentPage(Page $page)
+    {
+        $this->_currentPage = $page;
+    }
+
+    public function getCurrentPage()
+    {
+        return $this->_currentPage;
     }
 
     public function bootstrap($app)

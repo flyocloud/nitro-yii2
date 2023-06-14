@@ -47,6 +47,8 @@ class NitroController extends Controller
             throw new NotFoundHttpException(sprintf("Not page with the slug %s exists.", $path));
         }
 
+        Module::getInstance()->setCurrentPage($page);
+
         $this->view->title = $page->getMetaJson()->getTitle();
         $this->view->registerMetaTag([
             'property' => 'og:title',
