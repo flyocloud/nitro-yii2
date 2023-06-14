@@ -61,3 +61,9 @@ Its possible to extend the routing system for existing pages, in order to do so 
 ```php
 '<path:(the-page-path-to-extend)>/<slug:[a-z\-]+>' => 'flyo/nitro/index'
 ```
+
+In order to link to this extend Route, the below example could be used:
+
+```php
+yii\helpers\Url::toRoute(['/flyo/nitro/index', 'path' => Flyo\Yii\Module::getInstance()->currentPage->getSlug(), 'slug' => 'this-is-the-slug-param']);
+```
