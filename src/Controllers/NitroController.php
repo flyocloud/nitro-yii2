@@ -29,9 +29,9 @@ class NitroController extends Controller
         ];
     }
     
-    public function actionIndex()
+    public function actionIndex($path = null)
     {
-        $pathOrSlug = Yii::$app->request->pathInfo;
+        $pathOrSlug = $path;
 
         Yii::debug('flyo resolve route: ' . $pathOrSlug, __METHOD__);
 
@@ -44,7 +44,7 @@ class NitroController extends Controller
         Yii::endProfile('flyo-page-'.$pathOrSlug, __METHOD__);
 
         if (!$page) {
-            throw new NotFoundHttpException("Unable to find the given route");
+            throw new NotFoundHttpException(sprintf("Not page with the slug %s exists.", $path));
         }
 
         $this->view->title = $page->getMetaJson()->getTitle();
