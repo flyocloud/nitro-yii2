@@ -53,3 +53,11 @@ Generate a navigation in the layout file, use the `NavWidget`:
 ## Documentation
 
 [Read More in the Docs](https://dev.flyo.cloud/nitro/php)
+
+## Extend existing Routes
+
+Its possible to extend the routing system for existing pages, in order to do so use:
+
+```php
+'<path:(the-page-path-to-extend)>/<slug:[a-z\-]+>' => 'flyo/nitro/index'
+```
