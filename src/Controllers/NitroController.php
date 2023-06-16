@@ -4,6 +4,7 @@ namespace Flyo\Yii\Controllers;
 
 use Flyo\Api\PagesApi;
 use Flyo\Configuration;
+use Flyo\Traits\MetaDataTrait;
 use Flyo\Yii\Module;
 use Yii;
 use yii\filters\PageCache;
@@ -15,6 +16,8 @@ use yii\web\NotFoundHttpException;
  */
 class NitroController extends Controller
 {
+    use MetaDataTrait;
+
     public function behaviors()
     {
         return [
@@ -49,26 +52,7 @@ class NitroController extends Controller
 
         Module::getInstance()->setCurrentPage($page);
 
-        $this->view->title = $page->getMetaJson()->getTitle();
-        $this->view->registerMetaTag([
-            'property' => 'og:title',
-            'content' => $page->getMetaJson()->getTitle()
-        ]);
-
-        $this->view->registerMetaTag([
-            'name' => 'description',
-            'content' => $page->getMetaJson()->getDescription(),
-        ]);
-
-        $this->view->registerMetaTag([
-            'property' => 'og:description',
-            'content' => $page->getMetaJson()->getDescription()
-        ]);
-        
-        $this->view->registerMetaTag([
-            'property' => 'og:image',
-            'content' => $page->getMetaJson()->getImage()
-        ]);
+        $this->registerData($page->getMetaJson()->getTitle(), $page->getMetaJson()->getDescription(), $page->getMetaJson()->getImage());
 
         return $this->render('@app/views/nitro', [
             'page' => $page,
