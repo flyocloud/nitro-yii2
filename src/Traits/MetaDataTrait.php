@@ -2,7 +2,7 @@
 
 namespace Flyo\Yii\Traits;
 
-use Flyo\Model\EntityEntity;
+use Flyo\Model\Entity;
 use Yii;
 
 trait MetaDataTrait
@@ -33,8 +33,8 @@ trait MetaDataTrait
         ]);
     }
 
-    public function registerEntity(EntityEntity $entity)
+    public function registerEntity(Entity $entity)
     {
-        $this->registerData($entity->getEntityTitle(), $entity->getEntityTeaser(), $entity->getEntityImage());
+        $this->registerData($entity->getEntity()->getEntityTitle(), $entity->getEntity()->getEntityTeaser(), $entity->getEntity()->getEntityImage());
     }
 }
