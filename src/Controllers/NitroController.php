@@ -4,8 +4,8 @@ namespace Flyo\Yii\Controllers;
 
 use Flyo\Api\PagesApi;
 use Flyo\Configuration;
-use Flyo\Traits\MetaDataTrait;
 use Flyo\Yii\Module;
+use Flyo\Yii\Traits\MetaDataTrait;
 use Yii;
 use yii\filters\PageCache;
 use yii\web\Controller;

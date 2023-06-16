@@ -1,6 +1,6 @@
 <?php
 
-namespace Flyo\Traits;
+namespace Flyo\Yii\Traits;
 
 use Yii;
 
