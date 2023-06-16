@@ -2,6 +2,7 @@
 
 namespace Flyo\Yii\Traits;
 
+use Flyo\Model\EntityEntity;
 use Yii;
 
 trait MetaDataTrait
@@ -30,5 +31,10 @@ trait MetaDataTrait
             'property' => 'og:image',
             'content' => $imageSource,
         ]);
+    }
+
+    public function registerEntity(EntityEntity $entity)
+    {
+        $this->registerData($entity->getEntityTitle(), $entity->getEntityTeaser(), $entity->getEntityImage());
     }
 }
