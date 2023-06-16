@@ -4,6 +4,7 @@ namespace Flyo\Yii\Traits;
 
 use Flyo\Model\Entity;
 use Yii;
+use yii\web\View;
 
 trait MetaDataTrait
 {
@@ -36,5 +37,12 @@ trait MetaDataTrait
     public function registerEntity(Entity $entity)
     {
         $this->registerData($entity->getEntity()->getEntityTitle(), $entity->getEntity()->getEntityTeaser(), $entity->getEntity()->getEntityImage());
+    }
+
+    public function registerMetricPixel(Entity $entity)
+    {
+        if (!YII_DEBUG) {
+            Yii::$app->view->registerJs("fetch('{$entity->getEntity()->getEntityMetric()->getApi()}')", View::POS_END);
+        }
     }
 }
