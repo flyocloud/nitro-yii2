@@ -14,7 +14,7 @@ use yii\base\Widget;
  * <?php $container = ContainerWidget::begin(['identifier' => 'main']); ?>
  *       <ul>
  *       <?php foreach ($container->getItems() as $item): ?>
- *           <li><?= Html::a($item->getLabel(), $item->getPath()); ?></li>
+ *           <li><?= Html::a($item->getLabel(), $item->getHref()); ?></li>
  *       <?php endforeach; ?>
  *       </ul>
  *   <?php $container::end(); ?>

@@ -44,7 +44,7 @@ Generate a navigation in the layout file, use the `NavWidget`:
 <?php $nav = NavWidget::begin(); ?>
     <ul>
         <?php foreach ($nav->getItems() as $item): ?>
-            <li><?= Html::a($item->getLabel(), $item->getPath()); ?></li>
+            <li><?= Html::a($item->getLabel(), $item->getHref()); ?></li>
         <?php endforeach; ?>
     </ul>
 <?php $nav::end(); ?>
