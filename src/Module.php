@@ -72,6 +72,7 @@ class Module extends BaseModule implements BootstrapInterface
             $rules[] = new UrlRule(['verb' => 'GET', 'pattern' => '<path:('.$page.')>', 'route' => "{$this->id}/nitro/index"]);
         }
 
-        $app->urlManager->addRules($rules);
+        // To ensure proper prioritization, it is essential to prepend the rules. Otherwise, entity rules might take precedence over pages.
+        $app->urlManager->addRules($rules, false);
     }
 }
