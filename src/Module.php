@@ -7,6 +7,7 @@ use Flyo\Api\ConfigApi;
 use Flyo\Configuration;
 use Flyo\Model\ConfigResponse;
 use Flyo\Model\Page;
+use Flyo\Yii\Cache\VersionCacheDependency;
 use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
@@ -56,6 +57,14 @@ class Module extends BaseModule implements BootstrapInterface
         return $this->_currentPage;
     }
 
+    private function getNitroConfig()
+    {
+        Yii::beginProfile('flyo-config', __METHOD__);
+        $config = (new ConfigApi(null, Configuration::getDefaultConfiguration()))->config();
+        Yii::endProfile('flyo-config', __METHOD__);
+        return $config;
+    }
+
     public function bootstrap($app)
     {
         $config = new Configuration();
@@ -63,9 +72,11 @@ class Module extends BaseModule implements BootstrapInterface
 
         Configuration::setDefaultConfiguration($config);
 
-        Yii::beginProfile('flyo-config', __METHOD__);
-        $this->setConfig((new ConfigApi(null, Configuration::getDefaultConfiguration()))->config());
-        Yii::endProfile('flyo-config', __METHOD__);
+        $configApi = Yii::$app->cache->getOrSet(['flyo', 'version'], function() {
+            return $this->getNitroConfig();
+        }, 0, new VersionCacheDependency());
+
+        $this->setConfig($configApi);
         
         $rules = [];
         foreach($this->config->getPages() as $page) {
