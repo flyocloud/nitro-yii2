@@ -212,12 +212,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/flyocloud/nitro-php-sdk.git",
-                "reference": "0fb3c5574ef549a3bbcc4499dbaa03fcd69e4248"
+                "reference": "89595994841629b44acd35c6f14c36d9d3a5c93a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/flyocloud/nitro-php-sdk/zipball/0fb3c5574ef549a3bbcc4499dbaa03fcd69e4248",
-                "reference": "0fb3c5574ef549a3bbcc4499dbaa03fcd69e4248",
+                "url": "https://api.github.com/repos/flyocloud/nitro-php-sdk/zipball/89595994841629b44acd35c6f14c36d9d3a5c93a",
+                "reference": "89595994841629b44acd35c6f14c36d9d3a5c93a",
                 "shasum": ""
             },
             "require": {
@@ -258,7 +258,7 @@
                 "issues": "https://github.com/flyocloud/nitro-php-sdk/issues",
                 "source": "https://github.com/flyocloud/nitro-php-sdk/tree/main"
             },
-            "time": "2023-08-11T20:16:42+00:00"
+            "time": "2023-08-13T18:20:53+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
