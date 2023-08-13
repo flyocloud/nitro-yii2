@@ -4,6 +4,7 @@ namespace Flyo\Yii\Controllers;
 
 use Flyo\Api\PagesApi;
 use Flyo\Configuration;
+use Flyo\Yii\Cache\VersionCacheDependency;
 use Flyo\Yii\Module;
 use Flyo\Yii\Traits\MetaDataTrait;
 use Yii;
@@ -25,9 +26,7 @@ class NitroController extends Controller
                 'class' => PageCache::class,
                 'enabled' => YII_ENV_PROD,
                 'duration' => 0,
-                'variations' => [
-                    Module::getInstance()->getConfig()->getNitro()->getVersion(),
-                ],
+                'dependency' => new VersionCacheDependency()
             ]
         ];
     }
