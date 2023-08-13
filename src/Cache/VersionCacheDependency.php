@@ -17,7 +17,7 @@ class VersionCacheDependency extends Dependency
         $cacheApi = (new CacheApi(null, Configuration::getDefaultConfiguration()))->cache();
         Yii::endProfile('flyo-version', __METHOD__);
         
-        Yii::debug(['version' => $cacheApi->getVersion(), 'updated_at' => $cacheApi->getUpdatedAt()], __METHOD__);
+        Yii::debug(['version' => $cacheApi->getVersion(), 'last_updated_at' => date("d.m.Y H:i", $cacheApi->getUpdatedAt())], __METHOD__);
         return $cacheApi->getVersion();
     }
 }
