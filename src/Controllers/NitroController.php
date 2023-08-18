@@ -26,7 +26,10 @@ class NitroController extends Controller
                 'class' => PageCache::class,
                 'enabled' => YII_ENV_PROD,
                 'duration' => 0,
-                'dependency' => new VersionCacheDependency()
+                'dependency' => new VersionCacheDependency(),
+                'variations' => [
+                    Yii::$app->request->getQueryParam('path')
+                ]
             ]
         ];
     }
