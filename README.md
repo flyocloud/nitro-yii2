@@ -59,13 +59,11 @@ Generate a navigation in the layout file, use the `NavWidget`:
 Its possible to extend the routing system for existing pages. This can help when building dynamic sub pages which need to ensure that you are still on the same CMS page (not not entity detail), in order to do add the following url rule in the UrlManager section:
 
 ```php
-'<current-path:[a-z\-]+>/<slug:[a-z\-]+>' => 'flyo/nitro/index'
+'<path:(the-requested-slug)>/<slug:[a-z\-]+>' => 'flyo/nitro/index',
 ```
 
-In order to link to this extended route, the below Url::toRoute configuration could be used.
+In order to link to extended route, its not possible to use Url::toRoute, since this is a fixed rule in routes anyhow you have to use:
 
-```php
-yii\helpers\Url::toRoute(['/flyo/nitro/index', 'current-path' => Flyo\Yii\Module::getInstance()->currentPage->getSlug(), 'slug' => 'this-is-the-slug-param']);
 ```
-
-Note, that `current-path` and `slug` are just example variable names, you can use whatever you want.
+<a href="/the-requested-slug/<?= ...; ?>">Detail</a>
+```
