@@ -10,6 +10,7 @@ trait MetaDataTrait
 {
     public function registerData($title, $description, $imageSource)
     {
+        /** @var View $view */
         $view = Yii::$app->view;
 
         $view->title = $title;
@@ -42,7 +43,9 @@ trait MetaDataTrait
     public function registerMetricPixel(Entity $entity)
     {
         if (!YII_DEBUG) {
-            Yii::$app->view->registerJs("fetch('{$entity->getEntity()->getEntityMetric()->getApi()}')", View::POS_END);
+            /** @var View $view */
+            $view = Yii::$app->view;
+            $view->registerJs("fetch('{$entity->getEntity()->getEntityMetric()->getApi()}')", View::POS_END);
         }
     }
 }

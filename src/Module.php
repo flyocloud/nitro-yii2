@@ -102,7 +102,7 @@ class Module extends BaseModule implements BootstrapInterface
             self::$versionApi = $versionApi;
         }
 
-        return $versionApi;
+        return self::$versionApi;
     }
 
     public function bootstrap($app)
