@@ -27,7 +27,7 @@ trait MetaDataTrait
             'property' => 'og:description',
             'content' => $description
         ]);
-        
+
         $view->registerMetaTag([
             'property' => 'og:image',
             'content' => $imageSource,

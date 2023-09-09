@@ -6,6 +6,14 @@
         "flyo/nitro-php" : "dev-main",
         "yiisoft/yii2": "^2.0"
     },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.2",
+        "phpstan/phpstan": "^1.7"
+    },
+    "scripts": {
+        "phpstan": "vendor/bin/phpstan -v",
+        "phpcsfixer": "vendor/bin/php-cs-fixer fix"
+    },
     "license": "MIT",
     "autoload": {
         "psr-4": {

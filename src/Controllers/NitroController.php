@@ -8,6 +8,7 @@ use Flyo\Yii\Cache\VersionCacheDependency;
 use Flyo\Yii\Module;
 use Flyo\Yii\Traits\MetaDataTrait;
 use Yii;
+use yii\filters\HttpCache;
 use yii\filters\PageCache;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -25,15 +26,23 @@ class NitroController extends Controller
             [
                 'class' => PageCache::class,
                 'enabled' => YII_ENV_PROD,
-                'duration' => 0,
+                'duration' => Module::getInstance()->cacheDuration,
                 'dependency' => new VersionCacheDependency(),
                 'variations' => [
                     Yii::$app->request->getQueryParam('path')
                 ]
+            ],
+            [
+                'class' => HttpCache::class,
+                'enabled' => YII_ENV_PROD && Module::getInstance()->clientHttpCache,
+                'cacheControlHeader' => 'public, max-age=1800', // 30min client caching
+                'lastModified' => function () {
+                    return Module::getVersionApi()->getUpdatedAt();
+                },
             ]
         ];
     }
-    
+
     public function actionIndex($path = null)
     {
         $pathOrSlug = $path;

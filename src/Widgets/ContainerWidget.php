@@ -9,7 +9,7 @@ use yii\base\Widget;
 
 /**
  * Nav
- * 
+ *
  * ```php
  * <?php $container = ContainerWidget::begin(['identifier' => 'main']); ?>
  *       <ul>
@@ -43,7 +43,7 @@ class ContainerWidget extends Widget
     /**
      * @return PagesInner[]
      */
-    public function getItems() : array
+    public function getItems(): array
     {
         return $this->getContainer()->getItems();
     }
