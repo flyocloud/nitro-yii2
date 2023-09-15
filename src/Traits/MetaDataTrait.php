@@ -42,7 +42,7 @@ trait MetaDataTrait
 
     public function registerMetricPixel(Entity $entity)
     {
-        if (!YII_DEBUG) {
+        if (YII_ENV_PROD && !YII_DEBUG) {
             /** @var View $view */
             $view = Yii::$app->view;
             $view->registerJs("fetch('{$entity->getEntity()->getEntityMetric()->getApi()}')", View::POS_END);
