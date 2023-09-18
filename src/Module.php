@@ -43,13 +43,13 @@ class Module extends BaseModule implements BootstrapInterface
 
     /**
      * @var callable Additinal variation informations for the page, for example if you have a custom query param somewhere else:
-     * 
+     *
      * 'cacheVariation' => function() {
      *    return Yii::$app->request->getQueryParam('slug');
      * },
-     * 
+     *
      */
-    public callable $cacheVariation;
+    public $cacheVariation;
 
     public function init()
     {
