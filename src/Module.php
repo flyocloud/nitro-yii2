@@ -29,17 +29,33 @@ class Module extends BaseModule implements BootstrapInterface
     public $token;
 
     /**
-     * @var integer The number of seconds the data keeps in the cache, if you use 0 the cache will never be cleared. We use a high value, but not 0 (forever) because if you
+     * @var integer The number of seconds the page keeps in the cache, if you use 0 the cache will never be cleared. We use a high value, but not 0 (forever) because if you
      * use memcache with a persistante storage this can lead to costs using services like upstash.com therefore we use 2 weeks of cache duration:
      * 60 * 60 * 24 * 14 = 1209600
      */
     public $cacheDuration = 1209600;
 
     /**
-     * @var boolean Whether a client cache header should be sent or not, if enabled in production the page will be cached for 30mins in
+     * @var boolean Whether a client cache header should be sent for pages or not, if enabled in production the page will be cached for 30mins in
      * the clients browser cache.
      */
     public $clientHttpCache = true;
+
+    /**
+     * @var array Additinal variation informations for the page, for example if you have a custom query param somewhere else:
+     * 
+     * 'cacheVariations' => [
+     *    Yii::$app->request->getQueryParam('slug')
+     * ],
+     * 
+     */
+    public $cacheVariations = [];
+
+    /**
+     * @var callable A callable function to eveluate dynamicaly whether caching should be enabled or not. This can be usefull for contact forms and other things to disable caching.
+     * If defined, this will presedence over all the other settings.
+     */
+    public callable $cacheEnabled;
 
     public function init()
     {

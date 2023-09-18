@@ -25,12 +25,12 @@ class NitroController extends Controller
         return [
             [
                 'class' => PageCache::class,
-                'enabled' => YII_ENV_PROD,
+                'enabled' => $this->getIsCachingEnabled(),
                 'duration' => Module::getInstance()->cacheDuration,
                 'dependency' => new VersionCacheDependency(),
-                'variations' => [
+                'variations' => array_merge([
                     Yii::$app->request->getQueryParam('path')
-                ]
+                ], Module::getInstance()->cacheVariations),
             ],
             [
                 'class' => HttpCache::class,
@@ -41,6 +41,21 @@ class NitroController extends Controller
                 },
             ]
         ];
+    }
+
+    private function getIsCachingEnabled()
+    {
+        $callable = Module::getInstance()->cacheEnabled;
+
+        if (is_callable($callable)) {
+            return call_user_func($callable);
+        }
+
+        if (YII_ENV_PROD) {
+            return true;
+        }
+
+        return false;
     }
 
     public function actionIndex($path = null)
