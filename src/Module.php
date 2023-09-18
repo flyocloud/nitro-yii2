@@ -42,20 +42,14 @@ class Module extends BaseModule implements BootstrapInterface
     public $clientHttpCache = true;
 
     /**
-     * @var array Additinal variation informations for the page, for example if you have a custom query param somewhere else:
+     * @var callable Additinal variation informations for the page, for example if you have a custom query param somewhere else:
      * 
-     * 'cacheVariations' => [
-     *    Yii::$app->request->getQueryParam('slug')
-     * ],
+     * 'cacheVariation' => function() {
+     *    return Yii::$app->request->getQueryParam('slug');
+     * },
      * 
      */
-    public $cacheVariations = [];
-
-    /**
-     * @var callable A callable function to eveluate dynamicaly whether caching should be enabled or not. This can be usefull for contact forms and other things to disable caching.
-     * If defined, this will presedence over all the other settings.
-     */
-    public callable $cacheEnabled;
+    public callable $cacheVariation;
 
     public function init()
     {
