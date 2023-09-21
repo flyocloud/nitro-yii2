@@ -1,6 +1,6 @@
 <?php
 
-namespace Flyo\Actions;
+namespace Flyo\Yii\Actions;
 
 use Flyo\Api\PagesApi;
 use Flyo\Configuration;

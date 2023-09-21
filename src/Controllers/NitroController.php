@@ -2,7 +2,7 @@
 
 namespace Flyo\Yii\Controllers;
 
-use Flyo\Actions\PageAction;
+use Flyo\Yii\Actions\PageAction;
 use Flyo\Yii\Cache\VersionCacheDependency;
 use Flyo\Yii\Module;
 use Flyo\Yii\Traits\MetaDataTrait;
@@ -54,7 +54,9 @@ class NitroController extends Controller
     public function actions()
     {
         return [
-            'index' => PageAction::class,
+            'index' => [
+                'class' => PageAction::class,
+            ]
         ];
     }
 }
