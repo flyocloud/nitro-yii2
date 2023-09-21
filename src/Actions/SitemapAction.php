@@ -6,11 +6,23 @@ use Flyo\Api\SitemapApi;
 use Flyo\Configuration;
 use Yii;
 use yii\base\Action;
+use yii\base\InvalidConfigException;
 use yii\web\Response;
 
 class SitemapAction extends Action
 {
     public $detailRouteName = 'detail';
+
+    public $domain;
+
+    public function init()
+    {
+        parent::init();
+
+        if (!$this->domain) {
+            throw new InvalidConfigException('The property "$domain" can not be empty. Example "https://example.com"');
+        }
+    }
 
     public function run()
     {
@@ -29,14 +41,19 @@ class SitemapAction extends Action
                     continue;
                 }
                 $routes[] = $item->getEntitySlug();
-                $xml .= '<url><loc>/'.$item->getEntitySlug().'</loc></url>';
+                $xml .= '<url><loc>'.$this->buildUrl($item->getEntitySlug()).'</loc></url>';
             } elseif (isset($item->getRoutes()['detail'])) {
-                $xml .= '<url><loc>'.$item->getRoutes()[$this->detailRouteName].'</loc></url>';
+                $xml .= '<url><loc>'.$this->buildUrl($item->getRoutes()[$this->detailRouteName]).'</loc></url>';
             }
         }
 
         $xml .= '</urlset>';
 
         return $xml;
+    }
+
+    private function buildUrl($path)
+    {
+        return rtrim($this->domain, '/') . '/' . ltrim($path);
     }
 }
