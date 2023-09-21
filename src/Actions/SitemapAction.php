@@ -54,6 +54,6 @@ class SitemapAction extends Action
 
     private function buildUrl($path)
     {
-        return rtrim($this->domain, '/') . '/' . ltrim($path);
+        return rtrim($this->domain, '/') . '/' . ltrim($path, '/');
     }
 }
