@@ -10,6 +10,8 @@ use yii\web\Response;
 
 class SitemapAction extends Action
 {
+    public $detailRouteName = 'detail';
+
     public function run()
     {
         Yii::$app->response->format = Response::FORMAT_RAW;
@@ -29,7 +31,7 @@ class SitemapAction extends Action
                 $routes[] = $item->getEntitySlug();
                 $xml .= '<url><loc>/'.$item->getEntitySlug().'</loc></url>';
             } elseif (isset($item->getRoutes()['detail'])) {
-                $xml .= '<url><loc>'.$item->getRoutes()['detail'].'</loc></url>';
+                $xml .= '<url><loc>'.$item->getRoutes()[$this->detailRouteName].'</loc></url>';
             }
         }
 
