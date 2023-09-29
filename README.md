@@ -30,10 +30,12 @@ In order to render those blocks use the `Flyo\Yii\Widgets\PageWidget` which will
 
 ```php
 /** @var \Flyo\Model\Block $block */
+\Flyo\Widgets\OpenBlockInFlyo::begin(['block' => $block]);
 print_r($block->getContent());
 print_r($block->getConfig());
 print_r($block->getItems());
 print_r($block->getSlots());
+\Flyo\Widgets\OpenBlockInFlyo::end();
 ```
 
 ## Layout
