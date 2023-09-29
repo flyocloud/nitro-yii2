@@ -30,12 +30,10 @@ In order to render those blocks use the `Flyo\Yii\Widgets\PageWidget` which will
 
 ```php
 /** @var \Flyo\Model\Block $block */
-\Flyo\Widgets\OpenBlockInFlyo::begin(['block' => $block]);
 print_r($block->getContent());
 print_r($block->getConfig());
 print_r($block->getItems());
 print_r($block->getSlots());
-\Flyo\Widgets\OpenBlockInFlyo::end();
 ```
 
 ## Layout
@@ -52,9 +50,27 @@ Generate a navigation in the layout file, use the `NavWidget`:
 <?php $nav::end(); ?>
 ```
 
-## Documentation
+## Layout blocks with children
 
-[Read More in the Docs](https://dev.flyo.cloud/nitro/php)
+An example where a block contains child blocks, defined in the slot `content`:
+
+```php
+<?php
+use Flyo\Yii\Widgets\BlockWidget;
+/** @var \Flyo\Model\Block $block */
+$config = $block->getConfig();
+?>
+<div class="container">
+    <?php foreach ($block->getSlots()['content']->getContent() as $childBlock): ?>
+        <div class="w-full">
+            <?= BlockWidget::widget([
+                'block' => $childBlock,
+            ]); ?>
+        </div>
+    <?php endforeach; ?>
+</div>
+<?php SectionWidget::end(); ?>
+```
 
 ## Extend existing Routes
 
@@ -69,3 +85,7 @@ In order to link to extended route, its not possible to use Url::toRoute, since 
 ```
 <a href="/the-requested-slug/<?= ...; ?>">Detail</a>
 ```
+
+## Documentation
+
+[Read More about Flyo Nitro in general](https://dev.flyo.cloud/nitro)
