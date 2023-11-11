@@ -14,25 +14,17 @@ trait MetaDataTrait
         $view = Yii::$app->view;
 
         $view->title = $title;
-        $view->registerMetaTag([
-            'property' => 'og:title',
-            'content' => $title
-        ]);
+        $view->registerMetaTag(['name' => 'description', 'content' => $description]);
 
-        $view->registerMetaTag([
-            'name' => 'description',
-            'content' => $description,
-        ]);
+        $view->registerMetaTag(['property' => 'og:type', 'content' => 'website']);
+        $view->registerMetaTag(['property' => 'og:title', 'content' => $title]);
+        $view->registerMetaTag(['property' => 'og:description', 'content' => $description]);
+        $view->registerMetaTag(['property' => 'og:image', 'content' => $imageSource]);
 
-        $view->registerMetaTag([
-            'property' => 'og:description',
-            'content' => $description
-        ]);
-
-        $view->registerMetaTag([
-            'property' => 'og:image',
-            'content' => $imageSource,
-        ]);
+        $view->registerMetaTag(['name' => 'twitter:card', 'content' => 'summary_large_image']);
+        $view->registerMetaTag(['name' => 'twitter:title', 'content' => $title]);
+        $view->registerMetaTag(['name' => 'twitter:description', 'content' => $description]);
+        $view->registerMetaTag(['name' => 'twitter:image', 'content' => $imageSource]);
     }
 
     public function registerEntity(Entity $entity)
