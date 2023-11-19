@@ -4,6 +4,7 @@ namespace Flyo\Yii\Traits;
 
 use Flyo\Model\Entity;
 use Yii;
+use yii\helpers\Json;
 use yii\web\View;
 
 trait MetaDataTrait
@@ -30,6 +31,10 @@ trait MetaDataTrait
     public function registerEntity(Entity $entity)
     {
         $this->registerData($entity->getEntity()->getEntityTitle(), $entity->getEntity()->getEntityTeaser(), $entity->getEntity()->getEntityImage());
+    
+        Yii::$app->view->on(View::EVENT_BEGIN_BODY, function (Entity $entity) {
+            echo '<script type="application/ld+json">' . Json::encode($entity->getJsonld()) . '</script>';
+        });
     }
 
     public function registerMetricPixel(Entity $entity)
