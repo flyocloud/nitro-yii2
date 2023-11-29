@@ -41,7 +41,7 @@ print_r($block->getSlots());
 Generate a navigation in the layout file, use the `NavWidget`:
 
 ```php
-<?php $nav = NavWidget::begin(); ?>
+<?php $nav = ContainerWidget::begin(['identifier' => 'main']) ?>
     <ul>
         <?php foreach ($nav->getItems() as $item): ?>
             <li><?= Html::a($item->getLabel(), $item->getHref()); ?></li>
