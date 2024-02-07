@@ -51,6 +51,12 @@ class Module extends BaseModule implements BootstrapInterface
      */
     public $cacheVariation;
 
+    /**
+     * @var array By default we only allow GET requests for all defined url rules, if you want to allow other request methods you can define them here.
+     * Adding ['GET', 'POST'] can be useful for example if you want to use a form block inside a page.
+     */
+    public $urlRuleVerbs = ['GET'];
+
     public function init()
     {
         parent::init();
@@ -128,7 +134,7 @@ class Module extends BaseModule implements BootstrapInterface
 
         $rules = [];
         foreach($this->config->getPages() as $page) {
-            $rules[] = new UrlRule(['verb' => 'GET', 'pattern' => '<path:('.$page.')>', 'route' => "{$this->id}/nitro/index"]);
+            $rules[] = new UrlRule(['verb' => $this->urlRuleVerbs, 'pattern' => '<path:('.$page.')>', 'route' => "{$this->id}/nitro/index"]);
         }
 
         // To ensure proper prioritization, it is essential to prepend the rules. Otherwise, entity rules might take precedence over pages.
