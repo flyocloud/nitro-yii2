@@ -1,5 +1,7 @@
 # Flyo Nitro Yii2 Framework Module
 
+[![PHPUnit](https://github.com/flyocloud/nitro-yii2/actions/workflows/phpunit.yml/badge.svg)](https://github.com/flyocloud/nitro-yii2/actions/workflows/phpunit.yml)
+
 ```sh
 composer require flyo/nitro-yii2
 ```
