@@ -8,7 +8,8 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.2",
-        "phpstan/phpstan": "^1.7"
+        "phpstan/phpstan": "^1.7",
+        "phpunit/phpunit": "^11.0"
     },
     "scripts": {
         "phpstan": "vendor/bin/phpstan -v",
@@ -18,6 +19,11 @@
     "autoload": {
         "psr-4": {
             "Flyo\\Yii\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Flyo\\Yii\\Tests\\": "tests/"
         }
     },
     "authors": [

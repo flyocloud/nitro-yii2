@@ -24,6 +24,11 @@ class Module extends BaseModule implements BootstrapInterface
     public $controllerNamespace = 'Flyo\Yii\Controllers';
 
     /**
+     * @var string If defined, the configuration will use the given host instead of the default one. Ensure the host contains the version information like `localflyo.com/nitro/v1` without trailing slash.
+     */
+    public $host;
+
+    /**
      * @var string The flyo api token from the flyo.cloud dashboard.
      */
     public $token;
@@ -125,6 +130,10 @@ class Module extends BaseModule implements BootstrapInterface
     {
         $config = new Configuration();
         $config->setApiKey('token', $this->token);
+
+        if ($this->host) {
+            $config->setHost($this->host);
+        }
 
         Configuration::setDefaultConfiguration($config);
 
