@@ -22,16 +22,14 @@ trait MetaDataTrait
         $view->registerMetaTag(['property' => 'og:title', 'content' => $title]);
         $view->registerMetaTag(['property' => 'og:description', 'content' => $description]);
         if (!empty($imageSource)) {
-            $image = new Image($imageSource, $title, 1200, 630, 'jpg');
-            $view->registerMetaTag(['property' => 'og:image', 'content' => $image->getSrc()]);
+            $view->registerMetaTag(['property' => 'og:image', 'content' => Image::source($imageSource, 1200, 630, 'jpg')]);
         }
 
         $view->registerMetaTag(['name' => 'twitter:card', 'content' => 'summary_large_image']);
         $view->registerMetaTag(['name' => 'twitter:title', 'content' => $title]);
         $view->registerMetaTag(['name' => 'twitter:description', 'content' => $description]);
         if (!empty($imageSource)) {
-            $image = new Image($imageSource, $title, 1200, 600, 'jpg');
-            $view->registerMetaTag(['name' => 'twitter:image', 'content' => $image->getSrc()]);
+            $view->registerMetaTag(['name' => 'twitter:image', 'content' => Image::source($imageSource, 1200, 600, 'jpg')]);
         }
     }
 

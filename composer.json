@@ -5,7 +5,7 @@
     "require": {
         "flyo/nitro-php" : "dev-main",
         "yiisoft/yii2": "^2.0",
-        "flyo/nitro-php-bridge": "^1.0"
+        "flyo/nitro-php-bridge": "^1.1"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.2",
