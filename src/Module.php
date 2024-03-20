@@ -90,12 +90,12 @@ class Module extends BaseModule implements BootstrapInterface
         $this->_currentPage = $page;
     }
 
-    public function getCurrentPage()
+    public function getCurrentPage(): Page
     {
         return $this->_currentPage;
     }
 
-    private function getNitroConfig()
+    private function getNitroConfig(): ConfigResponse
     {
         Yii::beginProfile('flyo-config', __METHOD__);
         $config = (new ConfigApi(null, Configuration::getDefaultConfiguration()))->config();
@@ -108,7 +108,7 @@ class Module extends BaseModule implements BootstrapInterface
     /**
      * @return VersionResponse
      */
-    public static function getVersionApi()
+    public static function getVersionApi(): VersionResponse
     {
         if (self::$versionApi === null) {
             Yii::beginProfile('flyo-version', __METHOD__);
