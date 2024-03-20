@@ -90,7 +90,7 @@ class Module extends BaseModule implements BootstrapInterface
         $this->_currentPage = $page;
     }
 
-    public function getCurrentPage(): Page
+    public function getCurrentPage(): ?Page
     {
         return $this->_currentPage;
     }
