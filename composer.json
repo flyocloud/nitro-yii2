@@ -4,7 +4,8 @@
     "type": "yii2-extension",
     "require": {
         "flyo/nitro-php" : "dev-main",
-        "yiisoft/yii2": "^2.0"
+        "yiisoft/yii2": "^2.0",
+        "flyo/nitro-php-bridge": "^1.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.2",
