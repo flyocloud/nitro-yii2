@@ -3,7 +3,7 @@
     "description": "Flyo Nitro Yii2 Framework Module",
     "type": "yii2-extension",
     "require": {
-        "flyo/nitro-php": "^1.0",
+        "flyo/nitro-php": "^1.1",
         "yiisoft/yii2": "^2.0",
         "flyo/nitro-php-bridge": "^1.1"
     },

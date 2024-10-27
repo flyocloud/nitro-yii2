@@ -142,7 +142,7 @@ class Module extends BaseModule implements BootstrapInterface
         $this->setConfig($configApi);
 
         $rules = [];
-        foreach($this->config->getPages() as $page) {
+        foreach ($this->config->getPages() as $page) {
             $rules[] = new UrlRule(['verb' => $this->urlRuleVerbs, 'pattern' => '<path:('.$page.')>', 'route' => "{$this->id}/nitro/index"]);
         }
 

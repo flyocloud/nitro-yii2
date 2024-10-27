@@ -2,7 +2,7 @@
 
 namespace Flyo\Yii\Widgets;
 
-use Flyo\Model\PagesInner;
+use Flyo\Model\ContainerPage;
 use Flyo\Yii\Module;
 use yii\base\InvalidConfigException;
 use yii\base\Widget;
@@ -41,7 +41,7 @@ class ContainerWidget extends Widget
     }
 
     /**
-     * @return PagesInner[]
+     * @return ContainerPage[]
      */
     public function getItems(): array
     {
