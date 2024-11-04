@@ -42,7 +42,7 @@ class SitemapAction extends Action
                 }
                 $routes[] = $item->getEntitySlug();
                 $xml .= '<url><loc>'.$this->buildUrl($item->getEntitySlug()).'</loc></url>';
-            } elseif (isset($item->getRoutes()['detail'])) {
+            } elseif (isset($item->getRoutes()[$this->detailRouteName])) {
                 $xml .= '<url><loc>'.$this->buildUrl($item->getRoutes()[$this->detailRouteName]).'</loc></url>';
             }
         }
