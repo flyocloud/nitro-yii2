@@ -23,7 +23,7 @@ class NitroController extends Controller
         return [
             [
                 'class' => PageCache::class,
-                'enabled' => YII_ENV_PROD,
+                'enabled' => YII_ENV_PROD && Module::getInstance()->serverPageCache,
                 'duration' => Module::getInstance()->cacheDuration,
                 'dependency' => new VersionCacheDependency(),
                 'variations' => $this->getCacheVariation(),

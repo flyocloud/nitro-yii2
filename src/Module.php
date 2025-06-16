@@ -41,6 +41,11 @@ class Module extends BaseModule implements BootstrapInterface
     public $cacheDuration = 1209600;
 
     /**
+     * @var boolean If enabled, and the application has configured a cache component, the page will be cached on the server side for [[$cacheDuration]] seconds.
+     */
+    public $serverPageCache = true;
+
+    /**
      * @var boolean Whether a client cache header should be sent for pages or not, if enabled in production the page will be cached for 30mins in
      * the clients browser cache.
      */
