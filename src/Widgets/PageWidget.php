@@ -13,10 +13,7 @@ class PageWidget extends Widget
     {
         $content = '';
         foreach ($this->page->getJson() as $block) {
-            $flyo = OpenBlockInFlyo::begin(['block' => $block]);
-            // the output of the blockwidget will be catched by "ob_start()" in the OpenBlockInFlyo block
-            echo BlockWidget::widget(['block' => $block]);
-            $content .= $flyo->run();
+            $content .= BlockWidget::widget(['block' => $block]);
         }
         return $content;
     }
