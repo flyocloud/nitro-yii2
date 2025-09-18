@@ -88,6 +88,58 @@ In order to link to extended route, its not possible to use Url::toRoute, since 
 <a href="/the-requested-slug/<?= ...; ?>">Detail</a>
 ```
 
+## Yii2 Widget: OpenBlockInFlyo
+
+This widget makes Flyo blocks editable inside the Flyo preview iframe.  
+It automatically loads the Nitro JS Bridge and wires all elements with `data-flyo-uid`.
+
+### Usage
+
+#### Wrap content
+
+```php
+<?php
+use Flyo\Yii\Widgets\OpenBlockInFlyo;
+?>
+
+<?php OpenBlockInFlyo::begin(['block' => $block]); ?>
+    <h2><?= $block->getTitle(); ?></h2>
+    <p><?= $block->getText(); ?></p>
+<?php OpenBlockInFlyo::end(); ?>
+```
+Renders:
+
+```
+<div data-flyo-uid="block-uid-here">
+  <h2>…</h2>
+  <p>…</p>
+</div>
+```
+
+Attribute only
+
+If you already have a wrapper element, use the static helper:
+
+```php
+<section <?= OpenBlockInFlyo::attr($block) ?>>
+  <h1><?= $block->getTitle(); ?></h1>
+</section>
+```
+
+Renders:
+
+```
+<section data-flyo-uid="block-uid-here">
+  <h1>…</h1>
+</section>
+```
+
+Notes
+
+Highlighting/click-to-edit works only inside Flyo’s preview iframe.
+
+Outside preview, the page behaves normally.
+
 ## Documentation
 
 [Read More about Flyo Nitro in general](https://dev.flyo.cloud/nitro)
