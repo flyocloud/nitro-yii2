@@ -88,7 +88,7 @@ In order to link to extended route, its not possible to use Url::toRoute, since 
 <a href="/the-requested-slug/<?= ...; ?>">Detail</a>
 ```
 
-## Yii2 Widget: OpenBlockInFlyo
+## Yii2 Widget: Editable
 
 This widget makes Flyo blocks editable inside the Flyo preview iframe.  
 It automatically loads the Nitro JS Bridge and wires all elements with `data-flyo-uid`.
@@ -99,13 +99,13 @@ It automatically loads the Nitro JS Bridge and wires all elements with `data-fly
 
 ```php
 <?php
-use Flyo\Yii\Widgets\OpenBlockInFlyo;
+use Flyo\Yii\Widgets\Editable;
 ?>
 
-<?php OpenBlockInFlyo::begin(['block' => $block]); ?>
+<?php Editable::begin(['block' => $block]); ?>
     <h2><?= $block->getTitle(); ?></h2>
     <p><?= $block->getText(); ?></p>
-<?php OpenBlockInFlyo::end(); ?>
+<?php Editable::end(); ?>
 ```
 Renders:
 
@@ -121,7 +121,7 @@ Attribute only
 If you already have a wrapper element, use the static helper:
 
 ```php
-<section <?= OpenBlockInFlyo::attr($block) ?>>
+<section <?= OpenBlockEditableInFlyo::attr($block) ?>>
   <h1><?= $block->getTitle(); ?></h1>
 </section>
 ```
