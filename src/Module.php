@@ -40,6 +40,7 @@ class Module extends BaseModule implements BootstrapInterface
      * @var integer The number of seconds the page keeps in the cache, if you use 0 the cache will never be cleared. We use a high value, but not 0 (forever) because if you
      * use memcache with a persistante storage this can lead to costs using services like upstash.com therefore we use 2 weeks of cache duration:
      * 60 * 60 * 24 * 14 = 1209600
+     * 60 * 15 = 900 (15min)
      */
     public $cacheDuration = 1209600;
 
@@ -158,11 +159,13 @@ class Module extends BaseModule implements BootstrapInterface
         // To ensure proper prioritization, it is essential to prepend the rules. Otherwise, entity rules might take precedence over pages.
         $app->urlManager->addRules($rules, false);
 
-        $app->response->on(Response::EVENT_BEFORE_SEND, function (Event $event) {
-            /** @var Response $sender */
-            $sender = $event->sender;
-            $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cacheDuration}");
-            $sender->headers->set('CDN-Cache-Control', "max-age={$this->cacheDuration}");
-        });
+        if (YII_ENV_PROD && Module::getInstance()->serverPageCache) {
+            $app->response->on(Response::EVENT_BEFORE_SEND, function (Event $event) {
+                /** @var Response $sender */
+                $sender = $event->sender;
+                $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cacheDuration}");
+                $sender->headers->set('CDN-Cache-Control', "max-age={$this->cacheDuration}");
+            });
+        }
     }
 }
