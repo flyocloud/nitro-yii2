@@ -11,8 +11,11 @@ use Flyo\Model\VersionResponse;
 use Flyo\Yii\Cache\VersionCacheDependency;
 use Yii;
 use yii\base\BootstrapInterface;
+use yii\base\Event;
 use yii\base\InvalidConfigException;
 use yii\base\Module as BaseModule;
+use yii\web\Application;
+use yii\web\Response;
 use yii\web\UrlRule;
 
 /**
@@ -133,6 +136,7 @@ class Module extends BaseModule implements BootstrapInterface
 
     public function bootstrap($app)
     {
+        /** @var Application $app */
         $config = new Configuration();
         $config->setApiKey('token', $this->token);
 
@@ -153,5 +157,12 @@ class Module extends BaseModule implements BootstrapInterface
 
         // To ensure proper prioritization, it is essential to prepend the rules. Otherwise, entity rules might take precedence over pages.
         $app->urlManager->addRules($rules, false);
+
+        $app->response->on(Response::EVENT_BEFORE_SEND, function (Event $event) {
+            /** @var Response $sender */
+            $sender = $event->sender;
+            $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cacheDuration}");
+            $sender->headers->set('CDN-Cache-Control', "max-age={$this->cacheDuration}");
+        });
     }
 }
