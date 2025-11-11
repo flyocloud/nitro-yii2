@@ -3,9 +3,7 @@
 namespace Flyo\Yii\Widgets;
 
 use Flyo\Model\Block;
-use Yii;
 use yii\base\Widget;
-use yii\web\View;
 
 class OpenBlockInFlyo extends Widget
 {
