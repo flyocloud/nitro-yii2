@@ -15,7 +15,9 @@ class DebugInfoWidget extends Widget
         $release = Yii::$app->version;
         $version = YII_ENV_PROD ? Module::getVersionApi()->getVersion() : '-';
         $lastUpdate = YII_ENV_PROD ? date("d.m.Y H:i", Module::getVersionApi()->getUpdatedAt()) : '-';
+        $token = Module::getInstance()->token;
+        $tokenType = str_starts_with($token, 'p-') ? 'production' : (str_starts_with($token, 'd-') ? 'develop' : 'unknown');
 
-        return "<!-- " . implode(' | ', ["debug:{$debug}", "env:{$env}", "release:{$release}", "version:{$version}", "versiondate:{$lastUpdate}"]) . " -->";
+        return "<!-- " . implode(' | ', ["debug:{$debug}", "env:{$env}", "release:{$release}", "version:{$version}", "versiondate:{$lastUpdate}", "tokentype:{$tokenType}"]) . " -->";
     }
 }
