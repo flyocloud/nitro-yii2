@@ -17,7 +17,17 @@ class DebugInfoWidget extends Widget
         $lastUpdate = YII_ENV_PROD ? date("d.m.Y H:i", Module::getVersionApi()->getUpdatedAt()) : '-';
         $token = Module::getInstance()->token;
         $tokenType = str_starts_with($token, 'p-') ? 'production' : (str_starts_with($token, 'd-') ? 'develop' : 'unknown');
-
-        return "<!-- " . implode(' | ', ["debug:{$debug}", "env:{$env}", "release:{$release}", "version:{$version}", "versiondate:{$lastUpdate}", "tokentype:{$tokenType}"]) . " -->";
+        $vercelDeploymentId = getenv('VERCEL_DEPLOYMENT_ID') ?: '-';
+        $vercelGitCommitSha = getenv('VERCEL_GIT_COMMIT_SHA') ?: '-';
+        return "<!-- " . implode(' | ', [
+            "debug:{$debug}",
+            "env:{$env}",
+            "release:{$release}",
+            "version:{$version}",
+            "versiondate:{$lastUpdate}",
+            "tokentype:{$tokenType}",
+            "did:{$vercelDeploymentId}",
+            "csha:{$vercelGitCommitSha}"
+        ]) . " -->";
     }
 }
