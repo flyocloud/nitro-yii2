@@ -5,7 +5,7 @@ namespace Flyo\Yii\Events;
 use Flyo\Model\Page;
 use yii\base\Event;
 
-class OnPageResolveEvent extends Event
+class PageResolveEvent extends Event
 {
     public Page $page;
 }
