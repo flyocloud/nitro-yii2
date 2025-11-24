@@ -4,6 +4,7 @@ namespace Flyo\Yii\Actions;
 
 use Flyo\Api\PagesApi;
 use Flyo\Configuration;
+use Flyo\Yii\Events\OnPageResolveEvent;
 use Flyo\Yii\Module;
 use Flyo\Yii\Traits\MetaDataTrait;
 use Yii;
@@ -31,6 +32,10 @@ class PageAction extends Action
         if (!$page) {
             throw new NotFoundHttpException(sprintf("Not page with the slug %s exists.", $path));
         }
+
+        $event = new OnPageResolveEvent();
+        $event->page = $page;
+        $this->trigger(Module::EVENT_ON_PAGE_RESOLVE, $event);
 
         Module::getInstance()->setCurrentPage($page);
 

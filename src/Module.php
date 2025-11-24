@@ -24,6 +24,11 @@ use yii\web\UrlRule;
  */
 class Module extends BaseModule implements BootstrapInterface
 {
+    /**
+     * @var string The [[Flyo\Yii\Events\OnPageResolveEvent]] that is triggered when a page is resolved. Only successfull resolutions trigger this event.
+     */
+    public const string EVENT_ON_PAGE_RESOLVE = 'onPageResolve';
+
     public $controllerNamespace = 'Flyo\Yii\Controllers';
 
     /**
