@@ -31,7 +31,7 @@ class NitroController extends Controller
             [
                 'class' => HttpCache::class,
                 'enabled' => YII_ENV_PROD && Module::getInstance()->clientHttpCache,
-                'cacheControlHeader' => 'public, max-age=1800', // 30min client caching
+                'cacheControlHeader' => 'public, max-age=' . Module::getInstance()->clientHttpCacheDuration,
                 'lastModified' => function () {
                     return Module::getVersionApi()->getUpdatedAt();
                 },
