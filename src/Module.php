@@ -36,13 +36,6 @@ class Module extends BaseModule implements BootstrapInterface
      */
     public $token;
 
-    /**
-     * @var integer The number of seconds the page keeps in the cache, if you use 0 the cache will never be cleared. We use a high value, but not 0 (forever) because if you
-     * use memcache with a persistante storage this can lead to costs using services like upstash.com therefore we use 2 weeks of cache duration:
-     * 60 * 60 * 24 * 14 = 1209600
-     * 60 * 15 = 900 (15min)
-     */
-    public $cacheDuration = 1209600;
 
     /**
      * @var boolean If enabled, and the application has configured a cache component, the page will be cached on the server side for [[$cacheDuration]] seconds.
@@ -50,10 +43,33 @@ class Module extends BaseModule implements BootstrapInterface
     public $serverPageCache = true;
 
     /**
+     * @var int If enabled, and the application has configured a cache component, the page will be cached on the server side for this many seconds.
+     */
+    public $serverPageCacheDuration = 3600; // 1h
+
+    /**
+     * @var boolean Whether a CDN cache header should be sent for pages or not, if enabled in production the page will be cached for [[$cdnCacheDuration]] seconds in
+     * the CDN edge cache. In order to disable CDN Caching for a specific action you can set `Module::getInstance()->cdnCache = false;` there.
+     */
+    public $cdnCache = true;
+
+    /**
+     * @var int Whether a CDN cache header should be sent for pages or not, if enabled in production the page will be cached for this many seconds in
+     * the CDN edge cache. Current supported CDNs are Vercel and generic CDN-Cache-Control.
+     */
+    public $cdnCacheDuration = 1800; // 30min
+
+    /**
      * @var boolean Whether a client cache header should be sent for pages or not, if enabled in production the page will be cached for 30mins in
      * the clients browser cache.
      */
     public $clientHttpCache = true;
+
+    /**
+     * @var int The duration in seconds for the client cache header, if enabled in production the page will be cached for this many seconds in
+     * the clients browser cache.
+     */
+    public $clientHttpCacheDuration = 1800; // 30min
 
     /**
      * @var callable Additinal variation informations for the page, for example if you have a custom query param somewhere else:
@@ -147,7 +163,7 @@ class Module extends BaseModule implements BootstrapInterface
 
         Configuration::setDefaultConfiguration($config);
 
-        $configApi = YII_ENV_PROD ? Yii::$app->cache->getOrSet(['flyo', 'config'], fn () => $this->getNitroConfig(), $this->cacheDuration, new VersionCacheDependency()) : $this->getNitroConfig();
+        $configApi = YII_ENV_PROD ? Yii::$app->cache->getOrSet(['flyo', 'config'], fn () => $this->getNitroConfig(), $this->serverPageCache, new VersionCacheDependency()) : $this->getNitroConfig();
 
         $this->setConfig($configApi);
 
@@ -159,12 +175,12 @@ class Module extends BaseModule implements BootstrapInterface
         // To ensure proper prioritization, it is essential to prepend the rules. Otherwise, entity rules might take precedence over pages.
         $app->urlManager->addRules($rules, false);
 
-        if (YII_ENV_PROD && Module::getInstance()->serverPageCache) {
+        if (YII_ENV_PROD && Module::getInstance()->cdnCache) {
             $app->response->on(Response::EVENT_BEFORE_SEND, function (Event $event) {
                 /** @var Response $sender */
                 $sender = $event->sender;
-                $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cacheDuration}");
-                $sender->headers->set('CDN-Cache-Control', "max-age={$this->cacheDuration}");
+                $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
+                $sender->headers->set('CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
             });
         }
     }

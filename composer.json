@@ -14,7 +14,13 @@
     },
     "scripts": {
         "phpstan": "vendor/bin/phpstan -v",
-        "phpcsfixer": "vendor/bin/php-cs-fixer fix"
+        "phpcsfixer": "vendor/bin/php-cs-fixer fix",
+        "phpunit": "vendor/bin/phpunit tests/",
+        "prepare": [
+            "@phpcsfixer",
+            "@phpstan",
+            "@phpunit"
+        ]
     },
     "license": "MIT",
     "autoload": {
