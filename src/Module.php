@@ -168,7 +168,7 @@ class Module extends BaseModule implements BootstrapInterface
 
         Configuration::setDefaultConfiguration($config);
 
-        $configApi = YII_ENV_PROD ? Yii::$app->cache->getOrSet(['flyo', 'config'], fn () => $this->getNitroConfig(), $this->serverPageCache, new VersionCacheDependency()) : $this->getNitroConfig();
+        $configApi = YII_ENV_PROD && $this->serverPageCache ? Yii::$app->cache->getOrSet(['flyo', 'config'], fn () => $this->getNitroConfig(), $this->serverPageCacheDuration, new VersionCacheDependency()) : $this->getNitroConfig();
 
         $this->setConfig($configApi);
 
