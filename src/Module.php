@@ -180,7 +180,7 @@ class Module extends BaseModule implements BootstrapInterface
         // To ensure proper prioritization, it is essential to prepend the rules. Otherwise, entity rules might take precedence over pages.
         $app->urlManager->addRules($rules, false);
 
-        if (YII_ENV_PROD && Module::getInstance()->cdnCache) {
+        if (YII_ENV_PROD) {
             $app->response->on(Response::EVENT_BEFORE_SEND, function (Event $event) {
                 // its possible that during the runtime the cdnCache is disabled for specific actions
                 // therefore we need to check it again here
@@ -189,6 +189,12 @@ class Module extends BaseModule implements BootstrapInterface
                     $sender = $event->sender;
                     $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
                     $sender->headers->set('CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
+                } else {
+                    /** @var Response $sender */
+                    $sender = $event->sender;
+                    // explicitly disable cdn caching but client caching can still be active
+                    $sender->headers->set('Vercel-CDN-Cache-Control', 'no-store');
+                    $sender->headers->set('CDN-Cache-Control', 'no-store');
                 }
             });
         }
