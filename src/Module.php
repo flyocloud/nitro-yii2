@@ -182,10 +182,14 @@ class Module extends BaseModule implements BootstrapInterface
 
         if (YII_ENV_PROD && Module::getInstance()->cdnCache) {
             $app->response->on(Response::EVENT_BEFORE_SEND, function (Event $event) {
-                /** @var Response $sender */
-                $sender = $event->sender;
-                $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
-                $sender->headers->set('CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
+                // its possible that during the runtime the cdnCache is disabled for specific actions
+                // therefore we need to check it again here
+                if (Module::getInstance()->cdnCache) {
+                    /** @var Response $sender */
+                    $sender = $event->sender;
+                    $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
+                    $sender->headers->set('CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
+                }
             });
         }
     }
