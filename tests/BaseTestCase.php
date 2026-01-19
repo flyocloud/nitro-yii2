@@ -2,7 +2,9 @@
 
 namespace Flyo\Yii\Tests;
 
-define('YII_DEBUG', true);
+if (!defined('YII_DEBUG')) {
+    define('YII_DEBUG', true);
+}
 
 require_once 'vendor/yiisoft/yii2/Yii.php';
 
