@@ -2,12 +2,12 @@
 
 namespace Flyo\Yii\Widgets;
 
-use Flyo\Model\BlockSlot;
+use Flyo\Model\BlockSlotValue;
 use yii\base\Widget;
 
 class SlotRenderWidget extends Widget
 {
-    public BlockSlot $slot;
+    public BlockSlotValue $slot;
 
     public function run()
     {

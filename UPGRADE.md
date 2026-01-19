@@ -1,3 +1,7 @@
+# Upgrade to 3.0
+
+- The minimum supported PHP version is now PHP 8.3.
+
 # Upgrade to 2.0
 
 ## Breaking Cache Configuration
