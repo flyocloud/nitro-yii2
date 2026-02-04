@@ -13,8 +13,8 @@ class DebugInfoWidget extends Widget
         $debug = var_export(YII_DEBUG, true);
         $env = YII_ENV;
         $release = Yii::$app->version;
-        $version = YII_ENV_PROD ? Module::getVersionApi()->getVersion() : '-';
-        $lastUpdate = YII_ENV_PROD ? date("d.m.Y H:i", Module::getVersionApi()->getUpdatedAt()) : '-';
+        $version = YII_ENV_PROD ? Module::getInstance()->getConfig()->getNitro()->getVersion() : '-';
+        $lastUpdate = YII_ENV_PROD ? date("d.m.Y H:i", Module::getInstance()->getConfig()->getNitro()->getUpdatedAt()) : '-';
         $token = Module::getInstance()->token;
         $tokenType = str_starts_with($token, 'p-') ? 'production' : (str_starts_with($token, 'd-') ? 'develop' : 'unknown');
         $vercelDeploymentId = getenv('VERCEL_DEPLOYMENT_ID') ?: '-';

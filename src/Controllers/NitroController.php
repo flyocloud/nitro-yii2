@@ -34,7 +34,7 @@ class NitroController extends Controller
                 'enabled' => YII_ENV_PROD && Module::getInstance()->clientHttpCache,
                 'cacheControlHeader' => 'public, max-age=' . Module::getInstance()->clientHttpCacheDuration,
                 'lastModified' => function () {
-                    return Module::getVersionApi()->getUpdatedAt();
+                    return Module::getInstance()->getConfig()->getNitro()->getUpdatedAt();
                 },
             ]
         ];
