@@ -91,7 +91,11 @@ class Editable extends Widget
             $view->registerJs(<<<JS
 (function(){
   var bridge = window.nitroJsBridge;
-  if (!bridge || typeof bridge.highlightAndClick !== 'function') return;
+  if (!bridge || typeof bridge.highlightAndClick !== 'function') {
+    return;
+  }
+
+  bridge.scrollTo();
 
   var nodes = document.querySelectorAll('[data-flyo-uid]');
   for (var i = 0; i < nodes.length; i++) {
