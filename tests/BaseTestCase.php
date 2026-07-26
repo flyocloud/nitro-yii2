@@ -2,12 +2,6 @@
 
 namespace Flyo\Yii\Tests;
 
-if (!defined('YII_DEBUG')) {
-    define('YII_DEBUG', true);
-}
-
-require_once 'vendor/yiisoft/yii2/Yii.php';
-
 use PHPUnit\Framework\TestCase;
 use yii\caching\DummyCache;
 use yii\console\Application;

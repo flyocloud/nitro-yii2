@@ -6,11 +6,6 @@ use Flyo\ApiException;
 use Flyo\Configuration;
 use Flyo\Yii\Module;
 
-define('YII_DEBUG', true);
-
-require_once 'vendor/yiisoft/yii2/Yii.php';
-
-
 class ModuleTest extends BaseTestCase
 {
     public function testHost()

@@ -1,3 +1,68 @@
+# Upgrade to 3.3
+
+Live edit (the nitro js bridge) moved from the `Editable` widget into the module.
+
+## What changed
+
+- The nitro js bridge and its boot script (page refresh, scroll to block, editor handshake and the click handlers for every element with a `data-flyo-uid` attribute) are no longer registered by `Flyo\Yii\Widgets\Editable`, but by `Module::bootstrap()` on every page rendered by a web application, see `Flyo\Yii\LiveEdit`. Live edit therefore also works in projects which render `data-flyo-uid` by hand or do not use the widget at all.
+- The new `Module::$liveEdit` property switches the registration on and off. `Module::getIsLiveEditEnabled()` is the single source of truth: the `Editable` widget reads the same value, so live edit is configured in one place.
+- Default behavior is unchanged: live edit is enabled in every environment except production (`YII_ENV_PROD`).
+- `Editable::$isEnabled` is deprecated and **has no effect anymore**. Setting it emits a deprecation notice, the widget always follows `Module::$liveEdit`.
+- `Editable::ensureAssets()` has been removed.
+
+## Module configuration
+
+Set `liveEdit` explicitly, so it is visible in the config which environments run live edit:
+
+```php
+'modules' => [
+    'flyo' => [
+        'class' => \Flyo\Yii\Module::class,
+        'token' => 'YOUR_TOKEN',
+        'liveEdit' => !YII_ENV_PROD,
+    ],
+],
+```
+
+| Property | Type | Default | Description |
+| --- | --- | --- | --- |
+| `liveEdit` | `bool\|null` | `null` | Use `!YII_ENV_PROD` (live edit everywhere but production), `true` (also in production) or `false` (never). Leaving it `null` keeps the implicit `!YII_ENV_PROD` behavior, but set it explicitly. |
+| `liveEditBridgeUrl` | `string` | `Module::LIVE_EDIT_BRIDGE_URL` | Rarely needed, only to self host the bridge js file. |
+
+## What to do when updating
+
+1. **Add `'liveEdit' => !YII_ENV_PROD` to your module config** (see above). Nothing breaks without it — `null` behaves the same — but the explicit value is what you change later when a production preview or a staging environment needs live edit, and it documents the behavior for the next reader.
+
+2. **You enabled the widget in production** (any `'isEnabled' => true` passed to `Editable`/`OpenBlockInFlyo`): remove it and move the flag to the module, otherwise the marker is no longer rendered in production and the bridge is not registered either.
+
+   ```php
+   // view file
+   -<?php Editable::begin(['block' => $block, 'isEnabled' => true]); ?>
+   +<?php Editable::begin(['block' => $block]); ?>
+
+   // config
+   'modules' => [
+       'flyo' => [
+           'class' => \Flyo\Yii\Module::class,
+           'token' => 'YOUR_TOKEN',
+   +       'liveEdit' => true,
+       ],
+   ],
+   ```
+
+3. **You disabled a single widget** with `'isEnabled' => false`: there is no per widget toggle anymore, the option is ignored (with a deprecation notice). Remove it, and if live edit should be off entirely set `'liveEdit' => false` on the module.
+
+4. **You called `Editable::getIsEnabled()`** in your own code: use `\Flyo\Yii\Module::getInstance()->getIsLiveEditEnabled()` instead, the widget method is deprecated.
+
+5. **You called `Editable::ensureAssets()`** (or registered the assets manually): remove the call. If you need the bridge on a view which is not rendered through the module, use `\Flyo\Yii\LiveEdit::register($view)`.
+
+6. Search your codebase for `ensureAssets`, `isEnabled` and `OpenBlockInFlyo` and apply the steps above to each hit.
+
+## Verification
+
+With live edit enabled, the rendered page contains a `<script src="…nitro-js-bridge…">` tag plus the inline boot script at the end of the body, and each editable block carries a `data-flyo-uid` attribute. With `'liveEdit' => false` neither script is present.
+
+
 # Upgrade to 3.0
 
 - The minimum supported PHP version is now PHP 8.3.

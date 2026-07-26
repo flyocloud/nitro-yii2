@@ -17,6 +17,7 @@ use yii\base\Module as BaseModule;
 use yii\web\Application;
 use yii\web\Response;
 use yii\web\UrlRule;
+use yii\web\View;
 
 /**
  * @property ConfigResponse $config
@@ -28,6 +29,11 @@ class Module extends BaseModule implements BootstrapInterface
      * @var string The [[Flyo\Yii\Events\PageResolveEvent]] that is triggered when a page is resolved. Only successfull resolutions trigger this event.
      */
     public const EVENT_PAGE_RESOLVE = 'pageResolve';
+
+    /**
+     * @var string The UMD build of the nitro js bridge which is registered when live edit is enabled, see [[$liveEditBridgeUrl]].
+     */
+    public const LIVE_EDIT_BRIDGE_URL = 'https://unpkg.com/@flyo/nitro-js-bridge@1/dist/nitro-js-bridge.umd.cjs';
 
     public $controllerNamespace = 'Flyo\Yii\Controllers';
 
@@ -91,6 +97,25 @@ class Module extends BaseModule implements BootstrapInterface
      * Adding ['GET', 'POST'] can be useful for example if you want to use a form block inside a page.
      */
     public $urlRuleVerbs = ['GET'];
+
+    /**
+     * @var boolean|null Whether the live edit integration (nitro js bridge) should be registered in rendered pages or not.
+     * By default live edit is enabled in every environment except production, set to `true` or `false` in order to force the behavior.
+     */
+    public $liveEdit;
+
+    /**
+     * @var string The url to the nitro js bridge which is registered when live edit is enabled, can be changed in order to self host the bridge.
+     */
+    public $liveEditBridgeUrl = self::LIVE_EDIT_BRIDGE_URL;
+
+    /**
+     * Whether live edit should be registered in rendered pages or not, see [[$liveEdit]].
+     */
+    public function getIsLiveEditEnabled(): bool
+    {
+        return $this->liveEdit === null ? !YII_ENV_PROD : (bool) $this->liveEdit;
+    }
 
     public function init()
     {
@@ -167,6 +192,16 @@ class Module extends BaseModule implements BootstrapInterface
         }
 
         Configuration::setDefaultConfiguration($config);
+
+        // Live edit is a pure frontend concern: whenever a page is rendered by a web application the nitro js bridge
+        // and its boot script are registered. This is independent of whether a project uses the Editable widget or not.
+        if ($app instanceof Application && $this->getIsLiveEditEnabled()) {
+            Event::on(View::class, View::EVENT_BEGIN_PAGE, function (Event $event) {
+                if ($event->sender instanceof View) {
+                    LiveEdit::register($event->sender, $this->liveEditBridgeUrl);
+                }
+            });
+        }
 
         $configApi = YII_ENV_PROD && $this->serverPageCache ? Yii::$app->cache->getOrSet(['flyo', 'config'], fn () => $this->getNitroConfig(), $this->serverPageCacheDuration, new VersionCacheDependency()) : $this->getNitroConfig();
 

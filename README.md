@@ -13,6 +13,7 @@ add the module to your config
     'flyo' => [
         'class' => \Flyo\Yii\Module::class,
         'token' => 'YOUR_TOKEN',
+        'liveEdit' => !YII_ENV_PROD, // this is the default behavior, set to `true` to enable live edit in production as well
     ]
 ]
 ```
@@ -88,10 +89,18 @@ In order to link to extended route, its not possible to use Url::toRoute, since 
 <a href="/the-requested-slug/<?= ...; ?>">Detail</a>
 ```
 
+## Live Edit
+
+As long as the `liveEdit` module property is enabled, the module registers the Nitro JS Bridge together with its
+boot script (page refresh, scroll to block, editor handshake and the click handlers for all elements with a
+`data-flyo-uid` attribute) whenever a page is rendered by a web application. This happens independently of the
+`Editable` widget, therefore live edit also works in projects which mark their blocks by hand or do not mark them
+at all, and it is switched on and off in one single place.
+
 ## Yii2 Widget: Editable
 
-This widget makes Flyo blocks editable inside the Flyo preview iframe.  
-It automatically loads the Nitro JS Bridge and wires all elements with `data-flyo-uid`.
+This widget makes Flyo blocks editable inside the Flyo preview iframe by rendering the `data-flyo-uid` marker,
+which is picked up by the bridge registered through [Live Edit](#live-edit).
 
 ### Usage
 
@@ -121,7 +130,7 @@ Attribute only
 If you already have a wrapper element, use the static helper:
 
 ```php
-<section <?= OpenBlockEditableInFlyo::attr($block) ?>>
+<section <?= Editable::attr($block) ?>>
   <h1><?= $block->getTitle(); ?></h1>
 </section>
 ```
