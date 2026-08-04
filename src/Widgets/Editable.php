@@ -2,8 +2,8 @@
 
 namespace Flyo\Yii\Widgets;
 
+use Flyo\Yii\Accessor;
 use Flyo\Yii\Module;
-use Flyo\Yii\Types\Accessor;
 use yii\base\Widget;
 
 /**

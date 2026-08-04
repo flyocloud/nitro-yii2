@@ -5,8 +5,8 @@ namespace Flyo\Yii\Tests;
 use Flyo\Model\Block;
 use Flyo\Model\BlockSlotValue;
 use Flyo\Model\Page;
+use Flyo\Yii\Accessor;
 use Flyo\Yii\Tests\Data\HeroModel;
-use Flyo\Yii\Types\Accessor;
 
 class AccessorTest extends BaseTestCase
 {

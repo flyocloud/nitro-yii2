@@ -2,7 +2,7 @@
 
 namespace Flyo\Yii\Widgets;
 
-use Flyo\Yii\Types\Accessor;
+use Flyo\Yii\Accessor;
 use yii\base\Widget;
 
 class SlotRenderWidget extends Widget

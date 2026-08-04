@@ -42,33 +42,35 @@ print_r($block->getSlots());
 The view also receives the untyped `content` and `config` of the block as variables, they are the same objects
 as `$block->getContent()` and `$block->getConfig()`.
 
-## Type specs
+## Typed blocks and entity details
 
 The content, the config and the items of a block are untyped json (`stdClass`), the same is true for the detail
-data of an entity. Generate a php class for every block component and every entity type of your project, so
-your ide autocompletes those values and phpstan checks them:
+data of an entity. Generate models from the openapi schemas of your project (`/openapi/schemas`) with the
+generator of your choice, register them in the module and the widgets hand them to your views:
 
-```sh
-./yii flyo/types/generate
+```php
+'modules' => [
+    'flyo' => [
+        'class' => \Flyo\Yii\Module::class,
+        'token' => 'YOUR_TOKEN',
+        'blockModelNamespace' => 'App\\Flyo\\Model',
+    ],
+],
 ```
 
 ```php
 <?php
 // views/flyo/Hero.php
 
-use app\models\flyo\BlockHero;
-
-/** @var \Flyo\Model\Block $block */
-$content = BlockHero::content($block);
+/** @var \App\Flyo\Model\BlockHero $block */
 ?>
-<h1><?= $content->headline; ?></h1>
+<h1><?= $block->getContent()->getHeadline(); ?></h1>
 ```
 
-The generated classes only **describe** the json of the api response, they do not replace it: the object your
-view receives is unchanged, therefore the type specs have no runtime cost and can be added to an existing
-project view by view. Blocks without a type spec keep rendering as before.
+This module does not generate anything, it only uses the models when they are available: a block component
+without a model keeps the generic `Flyo\Model\Block`.
 
-[Read more about type specs, the setup and the alternative of hydrating your own openapi models](docs/type-specs.md)
+[Read more about generating, registering and hydrating your models](docs/typed-models.md)
 
 ## Layout
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Flyo\Yii\Types;
+namespace Flyo\Yii;
 
 use ArrayAccess;
 
@@ -10,12 +10,13 @@ use ArrayAccess;
  * The module must work with three different representations of the very same json:
  *
  * 1. the models of the flyo php sdk (`Flyo\Model\Block`), where values are read through getters,
- * 2. your own generated models (see [[\Flyo\Yii\Module::$blockModels]]), which live in your namespace
- *    and can not extend the sdk models, but also provide getters,
+ * 2. models generated from the openapi schemas of your project (see [[Module::$blockModels]]), which live in
+ *    your own namespace and can not extend the sdk models, but also provide getters,
  * 3. the raw `stdClass` objects of the untyped parts of the json (`content`, `config`, `items`, `model`).
  *
- * Instead of type hinting one of them, the widgets and actions of this module read the values through
- * this accessor, therefore they work with all three representations, see [[read()]].
+ * Instead of type hinting one of them, the widgets and actions of this module read the values through this
+ * accessor, therefore they work with all three representations and a project can bring its own models without
+ * patching the module, see [[read()]].
  */
 class Accessor
 {

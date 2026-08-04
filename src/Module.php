@@ -10,7 +10,6 @@ use Flyo\Model\Page;
 use Flyo\Model\VersionResponse;
 use Flyo\ObjectSerializer;
 use Flyo\Yii\Cache\VersionCacheDependency;
-use Flyo\Yii\Types\Accessor;
 use Throwable;
 use Yii;
 use yii\base\BootstrapInterface;
@@ -113,63 +112,63 @@ class Module extends BaseModule implements BootstrapInterface
     public $liveEditBridgeUrl = self::LIVE_EDIT_BRIDGE_URL;
 
     /**
-     * @var string|null The namespace of the generated type specs of your blocks and entities, for example
-     * `app\models\flyo`. Used as default by the `yii flyo/types/generate` command, see
-     * [[\Flyo\Yii\Controllers\TypesController]].
-     */
-    public $typesNamespace;
-
-    /**
-     * @var string The folder where the generated type specs are written to, it must match [[$typesNamespace]]
-     * in your autoload configuration. Yii aliases are supported.
-     */
-    public $typesPath = '@app/models/flyo';
-
-    /**
-     * @var string|null Optional namespace of your **own** generated openapi models, for example
-     * `OpenAPI\Client\Model`. When defined, the [[\Flyo\Yii\Widgets\BlockWidget]] hydrates every block into
-     * the model `{namespace}\Block{Component}` (if that class exists) and passes it to the view instead of
-     * the generic `Flyo\Model\Block`.
+     * @var string|null Namespace of the models which are generated from the openapi schemas of your flyo
+     * project, for example `App\Flyo\Model`. When defined, a block is hydrated into the model
+     * `{namespace}\Block{Component}` (if that class exists) and the widgets pass that model to your view
+     * instead of the generic `Flyo\Model\Block`, so a view reads typed values:
+     * `$block->getContent()->getHeadline()`.
      *
-     * In contrast to the generated type specs ([[$typesNamespace]]) this **replaces** the object your views
-     * receive: the values are read with getters (`$block->getContent()->getImage()`) and the block is
-     * serialized and hydrated on every render. Blocks without a matching model keep the generic block model.
-     *
-     * The generated models must be usable at runtime, therefore generate them including the supporting
-     * files: `--global-property models,supportingFiles`, otherwise `ModelInterface` and `ObjectSerializer`
-     * are missing and autoloading the models fails.
+     * This module does not generate the models, use the openapi generator of your choice on the schemas
+     * endpoint of your project (`/openapi/schemas`) and autoload the result. Nothing is required from the
+     * models except that they can be hydrated, blocks without a model keep the generic block model, see
+     * [[$modelHydrator]] and `docs/typed-models.md`.
      */
     public $blockModelNamespace;
 
     /**
-     * @var array<string, class-string> Explicit map of the block component name to your own generated block
-     * model, wins over the convention of [[$blockModelNamespace]]:
+     * @var array<string, class-string> Explicit map of the block component name to its generated model, wins
+     * over the convention of [[$blockModelNamespace]]:
      *
      * ```php
      * 'blockModels' => [
-     *     'Hero' => \OpenAPI\Client\Model\BlockHero::class,
+     *     'Hero' => \App\Flyo\Model\BlockHero::class,
      * ],
      * ```
      */
     public $blockModels = [];
 
     /**
-     * @var string|null Optional namespace of your own generated entity models, the detail data (`model`) of
-     * an entity is hydrated into `{namespace}\Entity{Type}` if that class exists, see [[$entityModels]].
+     * @var string|null Namespace of the generated models for the detail data (`model`) of an entity, the
+     * entity type `person` is hydrated into `{namespace}\EntityPerson` if that class exists, see
+     * [[$entityModels]].
      */
     public $entityModelNamespace;
 
     /**
-     * @var array<string, class-string> Explicit map of the entity type to your own generated model for the
-     * detail data of the entity, wins over the convention of [[$entityModelNamespace]]:
+     * @var array<string, class-string> Explicit map of the entity type to the generated model of its detail
+     * data, wins over the convention of [[$entityModelNamespace]]:
      *
      * ```php
      * 'entityModels' => [
-     *     'person' => \OpenAPI\Client\Model\EntityPerson::class,
+     *     'person' => \App\Flyo\Model\EntityPerson::class,
      * ],
      * ```
      */
     public $entityModels = [];
+
+    /**
+     * @var callable|null Hydrates the json of the api response into one of the generated models above:
+     *
+     * ```php
+     * 'modelHydrator' => fn (string $class, mixed $data): ?object => $mySerializer->denormalize($data, $class),
+     * ```
+     *
+     * By default the [[ObjectSerializer]] of the flyo php sdk is used, which understands the models of the
+     * openapi generator (the same generator the sdk itself is built with). Configure a hydrator when your
+     * models come from another generator, then the module only checks that the class exists and leaves the
+     * hydration to you. Returning null falls back to the untyped data.
+     */
+    public $modelHydrator;
 
     /**
      * Whether live edit should be registered in rendered pages or not, see [[$liveEdit]].
@@ -281,10 +280,10 @@ class Module extends BaseModule implements BootstrapInterface
         if (!array_key_exists($cacheKey, $this->_models)) {
             $class = $map[$key] ?? ($namespace === null ? null : rtrim($namespace, '\\') . '\\' . $prefix . ucfirst($key));
 
-            $this->_models[$cacheKey] = $class !== null && self::isHydratable($class) ? $class : false;
+            $this->_models[$cacheKey] = $class !== null && $this->isSupportedModel($class) ? $class : false;
 
             if ($class !== null && $this->_models[$cacheKey] === false) {
-                Yii::warning("The model {$class} of the {$scope} '{$key}' does not exist or is not an openapi model, the untyped data is used instead.", __METHOD__);
+                Yii::warning("The model {$class} of the {$scope} '{$key}' does not exist or can not be hydrated, the untyped data is used instead.", __METHOD__);
             }
         }
 
@@ -299,7 +298,11 @@ class Module extends BaseModule implements BootstrapInterface
     private function hydrate(string $class, mixed $data, mixed $fallback): mixed
     {
         try {
-            return ObjectSerializer::deserialize($data, $class);
+            $model = $this->modelHydrator === null
+                ? ObjectSerializer::deserialize($data, $class)
+                : call_user_func($this->modelHydrator, $class, $data);
+
+            return $model ?? $fallback;
         } catch (Throwable $e) {
             // models which have not been regenerated after a schema change must not break production
             if (YII_DEBUG) {
@@ -313,13 +316,21 @@ class Module extends BaseModule implements BootstrapInterface
     }
 
     /**
-     * Whether the given class can be hydrated by the [[ObjectSerializer]] or not, so a class which is not an
-     * openapi model results in a warning instead of a fatal error.
+     * Whether the given model can be hydrated or not. With a [[$modelHydrator]] the class only has to exist,
+     * the default hydrator additionally requires the static api of an openapi generator model, so a class
+     * which can not be hydrated results in a warning instead of a fatal error.
      */
-    private static function isHydratable(string $class): bool
+    private function isSupportedModel(string $class): bool
     {
-        return class_exists($class)
-            && defined($class . '::DISCRIMINATOR')
+        if (!class_exists($class)) {
+            return false;
+        }
+
+        if ($this->modelHydrator !== null) {
+            return true;
+        }
+
+        return defined($class . '::DISCRIMINATOR')
             && is_callable([$class, 'openAPITypes'])
             && is_callable([$class, 'setters'])
             && is_callable([$class, 'attributeMap'])

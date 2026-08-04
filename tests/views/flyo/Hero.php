@@ -8,7 +8,7 @@
  * @var mixed $config The untyped config of the block.
  */
 
-use Flyo\Yii\Types\Accessor;
+use Flyo\Yii\Accessor;
 
 echo implode('|', [
     'type:' . get_debug_type($block),

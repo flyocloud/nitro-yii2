@@ -2,8 +2,8 @@
 
 namespace Flyo\Yii\Widgets;
 
+use Flyo\Yii\Accessor;
 use Flyo\Yii\Module;
-use Flyo\Yii\Types\Accessor;
 use yii\base\InvalidConfigException;
 use yii\base\Widget;
 
@@ -33,8 +33,8 @@ class BlockWidget extends Widget
 
         return $this->render('@app/views/flyo/'. $viewFile, [
             'block' => $block,
-            // the untyped json of the block, a view describes it with its generated type spec, see
-            // [[\Flyo\Yii\Types\Shape]]
+            // the content and the config of the block, either the untyped json of the api response or, when a
+            // model is configured, the typed values of that model
             'content' => Accessor::content($block),
             'config' => Accessor::config($block),
         ]);
