@@ -2,17 +2,21 @@
 
 namespace Flyo\Yii\Widgets;
 
-use Flyo\Model\Page;
+use Flyo\Yii\Types\Accessor;
 use yii\base\Widget;
 
 class PageWidget extends Widget
 {
-    public Page $page;
+    /**
+     * @var object The page to render, usually a `Flyo\Model\Page`. Any object which provides the blocks of a
+     * page in its `json` value is accepted, see [[Accessor::blocks()]].
+     */
+    public object $page;
 
     public function run()
     {
         $content = '';
-        foreach ($this->page->getJson() as $block) {
+        foreach (Accessor::blocks($this->page) as $block) {
             $content .= BlockWidget::widget(['block' => $block]);
         }
         return $content;

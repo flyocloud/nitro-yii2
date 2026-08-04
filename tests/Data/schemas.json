@@ -1,0 +1,196 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Flyo Nitro Schemas",
+        "version": "1.0.0"
+    },
+    "components": {
+        "schemas": {
+            "blockHero": {
+                "type": "object",
+                "description": "The hero block.",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "identifier": {
+                        "type": "string"
+                    },
+                    "component": {
+                        "type": "string",
+                        "enum": ["Hero"]
+                    },
+                    "content": {
+                        "$ref": "#/components/schemas/blockHeroContent"
+                    },
+                    "config": {
+                        "type": "object",
+                        "properties": {
+                            "variant": {
+                                "type": "string",
+                                "enum": ["light", "dark"]
+                            }
+                        }
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/heroItem"
+                        }
+                    },
+                    "slots": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/blockSlotValue"
+                        }
+                    }
+                }
+            },
+            "blockHeroContent": {
+                "type": "object",
+                "description": "The content of the hero block.",
+                "properties": {
+                    "headline": {
+                        "type": "string",
+                        "description": "The headline of the hero."
+                    },
+                    "count": {
+                        "type": "integer"
+                    },
+                    "ratio": {
+                        "type": "number"
+                    },
+                    "active": {
+                        "type": "boolean"
+                    },
+                    "image": {
+                        "type": "object",
+                        "properties": {
+                            "source": {
+                                "type": "string"
+                            },
+                            "width": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "meta": {
+                        "type": "object"
+                    },
+                    "links": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "either": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ]
+                    },
+                    "nullable_string": {
+                        "type": ["string", "null"]
+                    },
+                    "untyped": {
+                        "enum": []
+                    },
+                    "my-key": {
+                        "type": "string"
+                    }
+                }
+            },
+            "heroItem": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    }
+                }
+            },
+            "blockHTML": {
+                "type": "object",
+                "properties": {
+                    "component": {
+                        "type": "string",
+                        "enum": ["HTML"]
+                    },
+                    "uid": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "object",
+                        "properties": {
+                            "html": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "blockSlotValue": {
+                "type": "object",
+                "properties": {
+                    "identifier": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "entityPerson": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/entityBase"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "firstname": {
+                                "type": "string"
+                            },
+                            "address": {
+                                "type": "object",
+                                "properties": {
+                                    "city": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "entityBase": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "object": {
+                "type": "object",
+                "properties": {
+                    "reserved": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

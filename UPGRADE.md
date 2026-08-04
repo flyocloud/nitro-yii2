@@ -1,3 +1,80 @@
+# Upgrade to 3.4
+
+Type specs for blocks and entity details, see [docs/type-specs.md](docs/type-specs.md). Nothing has to be
+changed in an existing project, everything below is either additive or a widened type hint.
+
+## What changed
+
+- New console command `yii flyo/types/generate` which generates a php class for every block component and
+  every entity type of your project from the openapi schemas of the nitro api. The generated classes describe
+  the untyped json (`content`, `config`, `items` of a block, `model` of an entity), they do not replace it,
+  therefore they have no runtime cost. Configure them with the new `Module::$typesNamespace` and
+  `Module::$typesPath` properties.
+- New optional hydration of your **own** generated openapi models with `Module::$blockModelNamespace`,
+  `Module::$blockModels`, `Module::$entityModelNamespace` and `Module::$entityModels`. Without those properties
+  the views receive the sdk models exactly as before.
+- The widgets do not type hint the sdk models anymore, they read the values of a block through the new
+  `Flyo\Yii\Types\Accessor` (getter, public property or array access). The following type hints changed from a
+  concrete class to `object`:
+
+  | Before | Now |
+  | --- | --- |
+  | `BlockWidget::$block`, `Editable::$block` (`Flyo\Model\Block`) | `object` |
+  | `Editable::attr(Block $block)`, `OpenBlockInFlyo::attr(Block $block)` | `attr(object $block)` |
+  | `PageWidget::$page` (`Flyo\Model\Page`) | `object` |
+  | `SlotRenderWidget::$slot` (`Flyo\Model\BlockSlotValue`) | `object` |
+
+  Passing the sdk models keeps working, the widgets accept your own models and the raw json in addition.
+- A block view receives two additional variables next to `block`: `content` and `config`, the untyped json of
+  the block.
+- The `EntityAction` passes the detail data of the entity as additional `model` variable to the view.
+
+## What to do when updating
+
+1. Nothing, if you do not want type specs. All changes are backwards compatible.
+
+2. **You extend `Editable` or `OpenBlockInFlyo` and override `attr()`**: widen the parameter of your override
+   to `object` as well, php requires the parameter type of an override to be identical or wider.
+
+   ```php
+   -public static function attr(Block $block): string
+   +public static function attr(object $block): string
+   ```
+
+3. **You want type specs**: add `typesNamespace` and `typesPath` to your module configuration, run
+   `./yii flyo/types/generate` and start using the generated classes in the views you touch anyway:
+
+   ```php
+   'modules' => [
+       'flyo' => [
+           'class' => \Flyo\Yii\Module::class,
+           'token' => 'YOUR_TOKEN',
+   +       'typesNamespace' => 'app\\models\\flyo',
+   +       'typesPath' => '@app/models/flyo',
+       ],
+   ],
+   ```
+
+   ```php
+   // views/flyo/Hero.php
+   +use app\models\flyo\BlockHero;
+   +
+   +$content = BlockHero::content($block);
+   -<h1><?= $block->getContent()->headline; ?></h1>
+   +<h1><?= $content->headline; ?></h1>
+   ```
+
+4. **You already generate your own openapi models** and want the views to receive them: configure
+   `blockModelNamespace` or `blockModels` and generate the models including the supporting files
+   (`--global-property models,supportingFiles`), otherwise `ModelInterface` and `ObjectSerializer` are missing
+   and autoloading a model fails. Your own widgets which type hint `Flyo\Model\Block` have to be widened,
+   see [docs/type-specs.md](docs/type-specs.md).
+
+## Verification
+
+`./yii flyo/types/generate --dryRun` lists the classes which would be generated without writing them. After
+generating, `vendor/bin/phpstan` reports every view which reads a field a block does not have anymore.
+
 # Upgrade to 3.3
 
 Live edit (the nitro js bridge) moved from the `Editable` widget into the module.

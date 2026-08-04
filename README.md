@@ -39,6 +39,37 @@ print_r($block->getItems());
 print_r($block->getSlots());
 ```
 
+The view also receives the untyped `content` and `config` of the block as variables, they are the same objects
+as `$block->getContent()` and `$block->getConfig()`.
+
+## Type specs
+
+The content, the config and the items of a block are untyped json (`stdClass`), the same is true for the detail
+data of an entity. Generate a php class for every block component and every entity type of your project, so
+your ide autocompletes those values and phpstan checks them:
+
+```sh
+./yii flyo/types/generate
+```
+
+```php
+<?php
+// views/flyo/Hero.php
+
+use app\models\flyo\BlockHero;
+
+/** @var \Flyo\Model\Block $block */
+$content = BlockHero::content($block);
+?>
+<h1><?= $content->headline; ?></h1>
+```
+
+The generated classes only **describe** the json of the api response, they do not replace it: the object your
+view receives is unchanged, therefore the type specs have no runtime cost and can be added to an existing
+project view by view. Blocks without a type spec keep rendering as before.
+
+[Read more about type specs, the setup and the alternative of hydrating your own openapi models](docs/type-specs.md)
+
 ## Layout
 
 Generate a navigation in the layout file, use the `NavWidget`:

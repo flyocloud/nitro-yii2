@@ -2,8 +2,8 @@
 
 namespace Flyo\Yii\Widgets;
 
-use Flyo\Model\Block;
 use Flyo\Yii\Module;
+use Flyo\Yii\Types\Accessor;
 use yii\base\Widget;
 
 /**
@@ -15,7 +15,12 @@ use yii\base\Widget;
  */
 class Editable extends Widget
 {
-    public Block $block;
+    /**
+     * @var object The block to mark, usually a `Flyo\Model\Block`. Any object which provides the uid of a
+     * block is accepted, see [[Accessor::read()]], therefore the widget also works with your own block
+     * models, see [[\Flyo\Yii\Module::$blockModels]].
+     */
+    public object $block;
 
     /**
      * @deprecated The widget has no own toggle anymore, configure [[\Flyo\Yii\Module::$liveEdit]] instead.
@@ -48,7 +53,7 @@ class Editable extends Widget
             return $content;
         }
 
-        $uid = $this->block->getUid();
+        $uid = Accessor::uid($this->block);
 
         // Keep your current behavior: we generate a wrapper <div> around the buffered content
         return '<div data-flyo-uid="' . htmlspecialchars($uid, ENT_QUOTES) . '">' . $content . '</div>';
@@ -62,9 +67,9 @@ class Editable extends Widget
      *       ...
      *   </section>
      */
-    public static function attr(Block $block): string
+    public static function attr(object $block): string
     {
-        $uid = htmlspecialchars($block->getUid(), ENT_QUOTES);
+        $uid = htmlspecialchars(Accessor::uid($block), ENT_QUOTES);
         return 'data-flyo-uid="' . $uid . '"';
     }
 }

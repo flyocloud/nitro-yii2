@@ -8,7 +8,10 @@ use Flyo\Configuration;
 use Flyo\Model\ConfigResponse;
 use Flyo\Model\Page;
 use Flyo\Model\VersionResponse;
+use Flyo\ObjectSerializer;
 use Flyo\Yii\Cache\VersionCacheDependency;
+use Flyo\Yii\Types\Accessor;
+use Throwable;
 use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\Event;
@@ -110,6 +113,65 @@ class Module extends BaseModule implements BootstrapInterface
     public $liveEditBridgeUrl = self::LIVE_EDIT_BRIDGE_URL;
 
     /**
+     * @var string|null The namespace of the generated type specs of your blocks and entities, for example
+     * `app\models\flyo`. Used as default by the `yii flyo/types/generate` command, see
+     * [[\Flyo\Yii\Controllers\TypesController]].
+     */
+    public $typesNamespace;
+
+    /**
+     * @var string The folder where the generated type specs are written to, it must match [[$typesNamespace]]
+     * in your autoload configuration. Yii aliases are supported.
+     */
+    public $typesPath = '@app/models/flyo';
+
+    /**
+     * @var string|null Optional namespace of your **own** generated openapi models, for example
+     * `OpenAPI\Client\Model`. When defined, the [[\Flyo\Yii\Widgets\BlockWidget]] hydrates every block into
+     * the model `{namespace}\Block{Component}` (if that class exists) and passes it to the view instead of
+     * the generic `Flyo\Model\Block`.
+     *
+     * In contrast to the generated type specs ([[$typesNamespace]]) this **replaces** the object your views
+     * receive: the values are read with getters (`$block->getContent()->getImage()`) and the block is
+     * serialized and hydrated on every render. Blocks without a matching model keep the generic block model.
+     *
+     * The generated models must be usable at runtime, therefore generate them including the supporting
+     * files: `--global-property models,supportingFiles`, otherwise `ModelInterface` and `ObjectSerializer`
+     * are missing and autoloading the models fails.
+     */
+    public $blockModelNamespace;
+
+    /**
+     * @var array<string, class-string> Explicit map of the block component name to your own generated block
+     * model, wins over the convention of [[$blockModelNamespace]]:
+     *
+     * ```php
+     * 'blockModels' => [
+     *     'Hero' => \OpenAPI\Client\Model\BlockHero::class,
+     * ],
+     * ```
+     */
+    public $blockModels = [];
+
+    /**
+     * @var string|null Optional namespace of your own generated entity models, the detail data (`model`) of
+     * an entity is hydrated into `{namespace}\Entity{Type}` if that class exists, see [[$entityModels]].
+     */
+    public $entityModelNamespace;
+
+    /**
+     * @var array<string, class-string> Explicit map of the entity type to your own generated model for the
+     * detail data of the entity, wins over the convention of [[$entityModelNamespace]]:
+     *
+     * ```php
+     * 'entityModels' => [
+     *     'person' => \OpenAPI\Client\Model\EntityPerson::class,
+     * ],
+     * ```
+     */
+    public $entityModels = [];
+
+    /**
      * Whether live edit should be registered in rendered pages or not, see [[$liveEdit]].
      */
     public function getIsLiveEditEnabled(): bool
@@ -148,6 +210,120 @@ class Module extends BaseModule implements BootstrapInterface
     public function getCurrentPage(): ?Page
     {
         return $this->_currentPage;
+    }
+
+    /**
+     * @var array<string, string|false> Resolved model classes, false when there is no model for the key.
+     */
+    private array $_models = [];
+
+    /**
+     * Hydrates the given block into your own generated block model, see [[$blockModels]].
+     *
+     * Returns the given block unchanged when no model is configured for its component, when the configured
+     * model does not exist or when the hydration fails outside of debug mode. Therefore adding your own
+     * models never breaks the rendering of a block which has no model (yet).
+     *
+     * @param object $block Any block representation, usually a `Flyo\Model\Block`.
+     */
+    public function resolveBlockModel(object $block): object
+    {
+        $class = $this->resolveModelClass('block', Accessor::component($block), $this->blockModels, $this->blockModelNamespace, 'Block');
+
+        if ($class === null) {
+            return $block;
+        }
+
+        $model = $this->hydrate($class, ObjectSerializer::sanitizeForSerialization($block), $block);
+
+        return is_object($model) ? $model : $block;
+    }
+
+    /**
+     * Hydrates the detail data (`model`) of the given entity into your own generated entity model, see
+     * [[$entityModels]].
+     *
+     * Returns the untyped detail data when no model is configured for the entity type, when the configured
+     * model does not exist or when the hydration fails outside of debug mode.
+     *
+     * @param object $entity Usually a `Flyo\Model\Entity`.
+     */
+    public function resolveEntityModel(object $entity): mixed
+    {
+        $model = Accessor::model($entity);
+        $interface = Accessor::read($entity, 'entity');
+        $type = is_object($interface) ? (string) Accessor::read($interface, 'entity_type', '') : '';
+
+        $class = $this->resolveModelClass('entity', $type, $this->entityModels, $this->entityModelNamespace, 'Entity');
+
+        if ($class === null || !is_object($model)) {
+            return $model;
+        }
+
+        return $this->hydrate($class, $model, $model);
+    }
+
+    /**
+     * @param string $scope Either `block` or `entity`, only used to separate the cache and the log message.
+     * @param string $key The block component or the entity type.
+     * @param array<string, class-string> $map
+     * @param string|null $namespace
+     * @param string $prefix The class name prefix of the convention, `Block` or `Entity`.
+     */
+    private function resolveModelClass(string $scope, string $key, array $map, ?string $namespace, string $prefix): ?string
+    {
+        if ($key === '') {
+            return null;
+        }
+
+        $cacheKey = $scope . '/' . $key;
+
+        if (!array_key_exists($cacheKey, $this->_models)) {
+            $class = $map[$key] ?? ($namespace === null ? null : rtrim($namespace, '\\') . '\\' . $prefix . ucfirst($key));
+
+            $this->_models[$cacheKey] = $class !== null && self::isHydratable($class) ? $class : false;
+
+            if ($class !== null && $this->_models[$cacheKey] === false) {
+                Yii::warning("The model {$class} of the {$scope} '{$key}' does not exist or is not an openapi model, the untyped data is used instead.", __METHOD__);
+            }
+        }
+
+        $class = $this->_models[$cacheKey];
+
+        return $class === false ? null : $class;
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function hydrate(string $class, mixed $data, mixed $fallback): mixed
+    {
+        try {
+            return ObjectSerializer::deserialize($data, $class);
+        } catch (Throwable $e) {
+            // models which have not been regenerated after a schema change must not break production
+            if (YII_DEBUG) {
+                throw $e;
+            }
+
+            Yii::warning("Unable to hydrate the model {$class}: {$e->getMessage()}", __METHOD__);
+
+            return $fallback;
+        }
+    }
+
+    /**
+     * Whether the given class can be hydrated by the [[ObjectSerializer]] or not, so a class which is not an
+     * openapi model results in a warning instead of a fatal error.
+     */
+    private static function isHydratable(string $class): bool
+    {
+        return class_exists($class)
+            && defined($class . '::DISCRIMINATOR')
+            && is_callable([$class, 'openAPITypes'])
+            && is_callable([$class, 'setters'])
+            && is_callable([$class, 'attributeMap'])
+            && is_callable([$class, 'isNullable']);
     }
 
     private function getNitroConfig(): ConfigResponse

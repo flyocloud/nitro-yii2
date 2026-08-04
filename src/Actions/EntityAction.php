@@ -6,6 +6,7 @@ use Flyo\Api\EntitiesApi;
 use Flyo\ApiException;
 use Flyo\Configuration;
 use Flyo\Model\Entity;
+use Flyo\Yii\Module;
 use Flyo\Yii\Traits\MetaDataTrait;
 use yii\base\Action;
 use yii\base\InvalidConfigException;
@@ -39,8 +40,14 @@ class EntityAction extends Action
             $this->registerEntity($entity);
             $this->registerMetricPixel($entity);
 
+            $module = Module::getInstance();
+
             return $this->controller->render($this->id, [
                 'entity' => $entity,
+                // the detail data of the entity, either the untyped json or your own model, see
+                // [[Module::$entityModels]]. Describe the untyped json with a generated type spec:
+                // `$model = EntityPerson::ofModel($entity);`
+                'model' => $module === null ? $entity->getModel() : $module->resolveEntityModel($entity),
             ]);
 
         } catch (ApiException $e) {

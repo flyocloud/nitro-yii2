@@ -2,17 +2,26 @@
 
 namespace Flyo\Yii\Widgets;
 
-use Flyo\Model\Block;
+use Flyo\Yii\Module;
+use Flyo\Yii\Types\Accessor;
 use yii\base\InvalidConfigException;
 use yii\base\Widget;
 
 class BlockWidget extends Widget
 {
-    public Block $block;
+    /**
+     * @var object The block to render, usually a `Flyo\Model\Block`. Any object which provides the values of a
+     * block is accepted, see [[Accessor::read()]], therefore a project can also render its own block models,
+     * see [[\Flyo\Yii\Module::$blockModels]].
+     */
+    public object $block;
 
     public function run()
     {
-        $viewFile = $this->block->getComponent();
+        $module = Module::getInstance();
+        $block = $module === null ? $this->block : $module->resolveBlockModel($this->block);
+
+        $viewFile = Accessor::component($block);
 
         if (empty($viewFile)) {
             if (YII_DEBUG) {
@@ -22,8 +31,12 @@ class BlockWidget extends Widget
             return '';
         }
 
-        return $this->render('@app/views/flyo/'. $this->block->getComponent(), [
-            'block' => $this->block,
+        return $this->render('@app/views/flyo/'. $viewFile, [
+            'block' => $block,
+            // the untyped json of the block, a view describes it with its generated type spec, see
+            // [[\Flyo\Yii\Types\Shape]]
+            'content' => Accessor::content($block),
+            'config' => Accessor::config($block),
         ]);
     }
 }
