@@ -2,7 +2,6 @@
 
 namespace Flyo\Yii\Widgets;
 
-use Flyo\Model\Block;
 use yii\base\Widget;
 
 class OpenBlockInFlyo extends Widget
@@ -15,7 +14,7 @@ class OpenBlockInFlyo extends Widget
         parent::init();
     }
 
-    public static function attr(Block $block): string
+    public static function attr(object $block): string
     {
         @trigger_error(__METHOD__ . ' is deprecated. Use Flyo\\Yii\\Widgets\\Editable::attr instead.', E_USER_DEPRECATED);
         return Editable::attr($block);

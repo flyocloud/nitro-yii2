@@ -39,6 +39,39 @@ print_r($block->getItems());
 print_r($block->getSlots());
 ```
 
+The view also receives the untyped `content` and `config` of the block as variables, they are the same objects
+as `$block->getContent()` and `$block->getConfig()`.
+
+## Typed blocks and entity details
+
+The content, the config and the items of a block are untyped json (`stdClass`), the same is true for the detail
+data of an entity. Generate models from the openapi schemas of your project (`/openapi/schemas`) with the
+generator of your choice, register them in the module and the widgets hand them to your views:
+
+```php
+'modules' => [
+    'flyo' => [
+        'class' => \Flyo\Yii\Module::class,
+        'token' => 'YOUR_TOKEN',
+        'blockModelNamespace' => 'App\\Flyo\\Model',
+    ],
+],
+```
+
+```php
+<?php
+// views/flyo/Hero.php
+
+/** @var \App\Flyo\Model\BlockHero $block */
+?>
+<h1><?= $block->getContent()->getHeadline(); ?></h1>
+```
+
+This module does not generate anything, it only uses the models when they are available: a block component
+without a model keeps the generic `Flyo\Model\Block`.
+
+[Read more about generating, registering and hydrating your models](docs/typed-models.md)
+
 ## Layout
 
 Generate a navigation in the layout file, use the `NavWidget`:

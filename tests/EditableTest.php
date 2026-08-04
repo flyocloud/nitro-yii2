@@ -4,6 +4,7 @@ namespace Flyo\Yii\Tests;
 
 use Flyo\Model\Block;
 use Flyo\Yii\Module;
+use Flyo\Yii\Tests\Data\HeroModel;
 use Flyo\Yii\Widgets\Editable;
 
 class EditableTest extends BaseTestCase
@@ -46,6 +47,28 @@ class EditableTest extends BaseTestCase
 
         // the widget started an output buffer in init(), close it again
         ob_end_clean();
+    }
+
+    public function testTheMarkerWorksWithAnyBlockRepresentation()
+    {
+        $this->setModuleInstance(true);
+
+        // the sdk model, an own generated model and the raw json all provide the uid of the block
+        foreach ([new Block(['uid' => 'block-uid']), new HeroModel(), (object) ['uid' => 'block-uid']] as $block) {
+            if ($block instanceof HeroModel) {
+                $block->setUid('block-uid');
+            }
+
+            $this->assertSame('data-flyo-uid="block-uid"', Editable::attr($block));
+            $this->assertSame('<div data-flyo-uid="block-uid"></div>', $this->render(['block' => $block]));
+        }
+    }
+
+    public function testABlockWithoutUidRendersAnEmptyMarker()
+    {
+        $this->setModuleInstance(true);
+
+        $this->assertSame('data-flyo-uid=""', Editable::attr(new Block([])));
     }
 
     private function setModuleInstance(bool $liveEdit): void

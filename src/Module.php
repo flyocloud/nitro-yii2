@@ -8,7 +8,9 @@ use Flyo\Configuration;
 use Flyo\Model\ConfigResponse;
 use Flyo\Model\Page;
 use Flyo\Model\VersionResponse;
+use Flyo\ObjectSerializer;
 use Flyo\Yii\Cache\VersionCacheDependency;
+use Throwable;
 use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\Event;
@@ -110,6 +112,65 @@ class Module extends BaseModule implements BootstrapInterface
     public $liveEditBridgeUrl = self::LIVE_EDIT_BRIDGE_URL;
 
     /**
+     * @var string|null Namespace of the models which are generated from the openapi schemas of your flyo
+     * project, for example `App\Flyo\Model`. When defined, a block is hydrated into the model
+     * `{namespace}\Block{Component}` (if that class exists) and the widgets pass that model to your view
+     * instead of the generic `Flyo\Model\Block`, so a view reads typed values:
+     * `$block->getContent()->getHeadline()`.
+     *
+     * This module does not generate the models, use the openapi generator of your choice on the schemas
+     * endpoint of your project (`/openapi/schemas`) and autoload the result. Nothing is required from the
+     * models except that they can be hydrated, blocks without a model keep the generic block model, see
+     * [[$modelHydrator]] and `docs/typed-models.md`.
+     */
+    public $blockModelNamespace;
+
+    /**
+     * @var array<string, class-string> Explicit map of the block component name to its generated model, wins
+     * over the convention of [[$blockModelNamespace]]:
+     *
+     * ```php
+     * 'blockModels' => [
+     *     'Hero' => \App\Flyo\Model\BlockHero::class,
+     * ],
+     * ```
+     */
+    public $blockModels = [];
+
+    /**
+     * @var string|null Namespace of the generated models for the detail data (`model`) of an entity, the
+     * entity type `person` is hydrated into `{namespace}\EntityPerson` if that class exists, see
+     * [[$entityModels]].
+     */
+    public $entityModelNamespace;
+
+    /**
+     * @var array<string, class-string> Explicit map of the entity type to the generated model of its detail
+     * data, wins over the convention of [[$entityModelNamespace]]:
+     *
+     * ```php
+     * 'entityModels' => [
+     *     'person' => \App\Flyo\Model\EntityPerson::class,
+     * ],
+     * ```
+     */
+    public $entityModels = [];
+
+    /**
+     * @var callable|null Hydrates the json of the api response into one of the generated models above:
+     *
+     * ```php
+     * 'modelHydrator' => fn (string $class, mixed $data): ?object => $mySerializer->denormalize($data, $class),
+     * ```
+     *
+     * By default the [[ObjectSerializer]] of the flyo php sdk is used, which understands the models of the
+     * openapi generator (the same generator the sdk itself is built with). Configure a hydrator when your
+     * models come from another generator, then the module only checks that the class exists and leaves the
+     * hydration to you. Returning null falls back to the untyped data.
+     */
+    public $modelHydrator;
+
+    /**
      * Whether live edit should be registered in rendered pages or not, see [[$liveEdit]].
      */
     public function getIsLiveEditEnabled(): bool
@@ -148,6 +209,132 @@ class Module extends BaseModule implements BootstrapInterface
     public function getCurrentPage(): ?Page
     {
         return $this->_currentPage;
+    }
+
+    /**
+     * @var array<string, string|false> Resolved model classes, false when there is no model for the key.
+     */
+    private array $_models = [];
+
+    /**
+     * Hydrates the given block into your own generated block model, see [[$blockModels]].
+     *
+     * Returns the given block unchanged when no model is configured for its component, when the configured
+     * model does not exist or when the hydration fails outside of debug mode. Therefore adding your own
+     * models never breaks the rendering of a block which has no model (yet).
+     *
+     * @param object $block Any block representation, usually a `Flyo\Model\Block`.
+     */
+    public function resolveBlockModel(object $block): object
+    {
+        $class = $this->resolveModelClass('block', Accessor::component($block), $this->blockModels, $this->blockModelNamespace, 'Block');
+
+        if ($class === null) {
+            return $block;
+        }
+
+        $model = $this->hydrate($class, ObjectSerializer::sanitizeForSerialization($block), $block);
+
+        return is_object($model) ? $model : $block;
+    }
+
+    /**
+     * Hydrates the detail data (`model`) of the given entity into your own generated entity model, see
+     * [[$entityModels]].
+     *
+     * Returns the untyped detail data when no model is configured for the entity type, when the configured
+     * model does not exist or when the hydration fails outside of debug mode.
+     *
+     * @param object $entity Usually a `Flyo\Model\Entity`.
+     */
+    public function resolveEntityModel(object $entity): mixed
+    {
+        $model = Accessor::model($entity);
+        $interface = Accessor::read($entity, 'entity');
+        $type = is_object($interface) ? (string) Accessor::read($interface, 'entity_type', '') : '';
+
+        $class = $this->resolveModelClass('entity', $type, $this->entityModels, $this->entityModelNamespace, 'Entity');
+
+        if ($class === null || !is_object($model)) {
+            return $model;
+        }
+
+        return $this->hydrate($class, $model, $model);
+    }
+
+    /**
+     * @param string $scope Either `block` or `entity`, only used to separate the cache and the log message.
+     * @param string $key The block component or the entity type.
+     * @param array<string, class-string> $map
+     * @param string|null $namespace
+     * @param string $prefix The class name prefix of the convention, `Block` or `Entity`.
+     */
+    private function resolveModelClass(string $scope, string $key, array $map, ?string $namespace, string $prefix): ?string
+    {
+        if ($key === '') {
+            return null;
+        }
+
+        $cacheKey = $scope . '/' . $key;
+
+        if (!array_key_exists($cacheKey, $this->_models)) {
+            $class = $map[$key] ?? ($namespace === null ? null : rtrim($namespace, '\\') . '\\' . $prefix . ucfirst($key));
+
+            $this->_models[$cacheKey] = $class !== null && $this->isSupportedModel($class) ? $class : false;
+
+            if ($class !== null && $this->_models[$cacheKey] === false) {
+                Yii::warning("The model {$class} of the {$scope} '{$key}' does not exist or can not be hydrated, the untyped data is used instead.", __METHOD__);
+            }
+        }
+
+        $class = $this->_models[$cacheKey];
+
+        return $class === false ? null : $class;
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function hydrate(string $class, mixed $data, mixed $fallback): mixed
+    {
+        try {
+            $model = $this->modelHydrator === null
+                ? ObjectSerializer::deserialize($data, $class)
+                : call_user_func($this->modelHydrator, $class, $data);
+
+            return $model ?? $fallback;
+        } catch (Throwable $e) {
+            // models which have not been regenerated after a schema change must not break production
+            if (YII_DEBUG) {
+                throw $e;
+            }
+
+            Yii::warning("Unable to hydrate the model {$class}: {$e->getMessage()}", __METHOD__);
+
+            return $fallback;
+        }
+    }
+
+    /**
+     * Whether the given model can be hydrated or not. With a [[$modelHydrator]] the class only has to exist,
+     * the default hydrator additionally requires the static api of an openapi generator model, so a class
+     * which can not be hydrated results in a warning instead of a fatal error.
+     */
+    private function isSupportedModel(string $class): bool
+    {
+        if (!class_exists($class)) {
+            return false;
+        }
+
+        if ($this->modelHydrator !== null) {
+            return true;
+        }
+
+        return defined($class . '::DISCRIMINATOR')
+            && is_callable([$class, 'openAPITypes'])
+            && is_callable([$class, 'setters'])
+            && is_callable([$class, 'attributeMap'])
+            && is_callable([$class, 'isNullable']);
     }
 
     private function getNitroConfig(): ConfigResponse
