@@ -4,6 +4,7 @@ namespace Flyo\Yii\Actions;
 
 use Flyo\Api\SitemapApi;
 use Flyo\Configuration;
+use Flyo\Model\EntityinterfaceInner;
 use Yii;
 use yii\base\Action;
 use yii\base\InvalidConfigException;
@@ -42,7 +43,7 @@ class SitemapAction extends Action
     /**
      * Generate the sitemap xml for the given items of the sitemap api response.
      *
-     * @param iterable $items The sitemap items, every item provides a `getHref()` and `getUpdatedAt()` value.
+     * @param EntityinterfaceInner[] $items The sitemap items.
      * @return string The sitemap xml.
      */
     public function generateXml(iterable $items)
@@ -79,18 +80,11 @@ class SitemapAction extends Action
     /**
      * Generate the W3C datetime for the `lastmod` value of a given sitemap item.
      *
-     * The `updated_at` unix timestamp has been added to the sitemap items at a later point, therefore the
-     * value is only taken into account when the installed SDK model exposes it.
-     *
-     * @param object $item The sitemap item from the api response.
+     * @param EntityinterfaceInner $item The sitemap item from the api response.
      * @return string|null The `lastmod` value or null if the item does not provide an update time.
      */
-    private function buildLastmod(object $item)
+    private function buildLastmod(EntityinterfaceInner $item)
     {
-        if (!method_exists($item, 'getUpdatedAt')) {
-            return null;
-        }
-
         $updatedAt = (int) $item->getUpdatedAt();
 
         return $updatedAt > 0 ? gmdate(DATE_W3C, $updatedAt) : null;

@@ -4,7 +4,6 @@ namespace Flyo\Yii\Tests;
 
 use Flyo\Model\EntityinterfaceInner;
 use Flyo\Yii\Actions\SitemapAction;
-use Flyo\Yii\Tests\Stubs\SitemapItemStub;
 use yii\base\InvalidConfigException;
 use yii\console\Controller;
 
@@ -15,6 +14,11 @@ class SitemapActionTest extends BaseTestCase
         return new SitemapAction('sitemap', new Controller('test', $this->app), [
             'domain' => 'https://example.com/',
         ]);
+    }
+
+    private function createItem(?string $href, ?int $updatedAt = null): EntityinterfaceInner
+    {
+        return new EntityinterfaceInner(['href' => $href, 'updated_at' => $updatedAt]);
     }
 
     public function testDomainIsRequired()
@@ -40,14 +44,14 @@ class SitemapActionTest extends BaseTestCase
 
         $this->assertCount(1, $notices);
         $this->assertStringContainsString('is deprecated and has no effect', $notices[0]);
-        $this->assertStringNotContainsString('detail', $action->generateXml([new SitemapItemStub('/about-me')]));
+        $this->assertStringNotContainsString('detail', $action->generateXml([$this->createItem('/about-me')]));
     }
 
     public function testHrefIsUsedAsLocation()
     {
         $xml = $this->createAction()->generateXml([
-            new SitemapItemStub('/about-me'),
-            new SitemapItemStub('news/news-title-1'),
+            $this->createItem('/about-me'),
+            $this->createItem('news/news-title-1'),
         ]);
 
         $this->assertSame(
@@ -63,7 +67,7 @@ class SitemapActionTest extends BaseTestCase
     public function testUpdatedAtIsUsedAsLastmod()
     {
         $xml = $this->createAction()->generateXml([
-            new SitemapItemStub('/about-me', 1770000000),
+            $this->createItem('/about-me', 1770000000),
         ]);
 
         $this->assertStringContainsString('<loc>https://example.com/about-me</loc><lastmod>2026-02-02T02:40:00+00:00</lastmod>', $xml);
@@ -72,22 +76,20 @@ class SitemapActionTest extends BaseTestCase
     public function testItemWithoutUpdatedAtHasNoLastmod()
     {
         $xml = $this->createAction()->generateXml([
-            new SitemapItemStub('/about-me', 0),
-            new SitemapItemStub('/contact', null),
-            // an sdk model which does not expose the `updated_at` value at all
-            new EntityinterfaceInner(['href' => '/imprint']),
+            $this->createItem('/about-me', 0),
+            $this->createItem('/contact', null),
         ]);
 
         $this->assertStringNotContainsString('<lastmod>', $xml);
-        $this->assertStringContainsString('<url><loc>https://example.com/imprint</loc></url>', $xml);
+        $this->assertStringContainsString('<url><loc>https://example.com/contact</loc></url>', $xml);
     }
 
     public function testItemsWithoutHrefAreSkipped()
     {
         $xml = $this->createAction()->generateXml([
-            new SitemapItemStub(null),
-            new SitemapItemStub(''),
-            new SitemapItemStub('/about-me'),
+            $this->createItem(null),
+            $this->createItem(''),
+            $this->createItem('/about-me'),
         ]);
 
         $this->assertSame(1, substr_count($xml, '<url>'));
@@ -96,8 +98,8 @@ class SitemapActionTest extends BaseTestCase
     public function testDuplicateHrefsAreSkipped()
     {
         $xml = $this->createAction()->generateXml([
-            new SitemapItemStub('/about-me', 1770000000),
-            new SitemapItemStub('/about-me', 1780000000),
+            $this->createItem('/about-me', 1770000000),
+            $this->createItem('/about-me', 1780000000),
         ]);
 
         $this->assertSame(1, substr_count($xml, '<url>'));

@@ -67,8 +67,8 @@ With live edit enabled, the rendered page contains a `<script src="…nitro-js-b
 `Flyo\Yii\Actions\SitemapAction` now uses the values the sitemap endpoint delivers for exactly this purpose:
 
 - The `<loc>` of an entry is built from the `href` of the item — the url path resolved by the API — instead of the entity slug (pages) or the `routes` entry (entities). Items without a resolved `href` are skipped, duplicated hrefs are only listed once.
-- Every entry with an `updated_at` timestamp now carries a `<lastmod>` value (W3C datetime, UTC), so search engines see when the content of a page actually changed. The value is written as soon as the installed `flyo/nitro-php` SDK exposes `updated_at` on the sitemap items; with an SDK which does not deliver it, the entry is written without `lastmod`.
-- `flyo/nitro-php` is required in `^2.0.2` now, that is the first version whose sitemap items contain the `href` value.
+- Every entry with an `updated_at` timestamp now carries a `<lastmod>` value (W3C datetime, UTC), so search engines see when the content of a page actually changed. For pages this is the last time the delivered content actually changed, a rebuild with identical output does not move it.
+- `flyo/nitro-php` is required in `^2.2` now, that is the version which delivers `href` and `updated_at` on the sitemap items. Run `composer update flyo/nitro-php` when updating.
 - `SitemapAction::$detailRouteName` is deprecated and **has no effect anymore**, because the url is not assembled from route names. Remove it from your action configuration, it will be dropped in a future release.
 
   ```php
