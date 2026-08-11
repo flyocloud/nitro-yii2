@@ -62,6 +62,29 @@ Set `liveEdit` explicitly, so it is visible in the config which environments run
 
 With live edit enabled, the rendered page contains a `<script src="…nitro-js-bridge…">` tag plus the inline boot script at the end of the body, and each editable block carries a `data-flyo-uid` attribute. With `'liveEdit' => false` neither script is present.
 
+## Sitemap
+
+`Flyo\Yii\Actions\SitemapAction` now uses the values the sitemap endpoint delivers for exactly this purpose:
+
+- The `<loc>` of an entry is built from the `href` of the item — the url path resolved by the API — instead of the entity slug (pages) or the `routes` entry (entities). Items without a resolved `href` are skipped, duplicated hrefs are only listed once.
+- Every entry with an `updated_at` timestamp now carries a `<lastmod>` value (W3C datetime, UTC), so search engines see when the content of a page actually changed. For pages this is the last time the delivered content actually changed, a rebuild with identical output does not move it.
+- `flyo/nitro-php` is required in `^2.2` now, that is the version which delivers `href` and `updated_at` on the sitemap items. Run `composer update flyo/nitro-php` when updating.
+- `SitemapAction::$detailRouteName` is deprecated and **has no effect anymore**, because the url is not assembled from route names. Remove it from your action configuration, it will be dropped in a future release.
+
+  ```php
+  public function actions()
+  {
+      return [
+          'sitemap' => [
+              'class' => \Flyo\Yii\Actions\SitemapAction::class,
+              'domain' => 'https://example.com',
+  -           'detailRouteName' => 'detail',
+          ],
+      ];
+  }
+  ```
+
+Entities which are mapped to a route but whose route name differed from `detailRouteName` were missing from the sitemap before, they are now included. If you deliberately kept entities out of the sitemap by naming their route differently, remove the route mapping in Flyo instead.
 
 # Upgrade to 3.0
 
