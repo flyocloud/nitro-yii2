@@ -4,6 +4,7 @@ namespace Flyo\Yii\Traits;
 
 use Flyo\Bridge\Image;
 use Flyo\Model\Entity;
+use Flyo\Model\Page;
 use Yii;
 use yii\helpers\Json;
 use yii\web\View;
@@ -33,13 +34,51 @@ trait MetaDataTrait
         }
     }
 
+    public function registerPage(Page $page)
+    {
+        $this->registerData($page->getMetaJson()->getTitle(), $page->getMetaJson()->getDescription(), $page->getMetaJson()->getImage());
+        $this->registerJsonld($page->getJsonld());
+    }
+
     public function registerEntity(Entity $entity)
     {
         $this->registerData($entity->getEntity()->getEntityTitle(), $entity->getEntity()->getEntityTeaser(), $entity->getEntity()->getEntityImage());
+        $this->registerJsonld($entity->getJsonld());
+    }
 
-        Yii::$app->view->on(View::EVENT_BEGIN_BODY, function () use ($entity) {
-            echo '<script type="application/ld+json">' . Json::encode($entity->getJsonld()) . '</script>';
+    /**
+     * Register a JSON-LD object (as provided by the Nitro API for pages and entities) in the body of the current view.
+     *
+     * @param object|array|null $jsonld
+     */
+    public function registerJsonld($jsonld)
+    {
+        $script = $this->generateJsonldScript($jsonld);
+
+        if ($script === '') {
+            return;
+        }
+
+        Yii::$app->view->on(View::EVENT_BEGIN_BODY, function () use ($script) {
+            echo $script;
         });
+    }
+
+    /**
+     * Generate the script tag for a given JSON-LD object, an empty string is returned when there is no data to render.
+     *
+     * @param object|array|null $jsonld
+     */
+    public function generateJsonldScript($jsonld): string
+    {
+        $data = is_object($jsonld) ? get_object_vars($jsonld) : $jsonld;
+
+        if (empty($data)) {
+            return '';
+        }
+
+        // htmlEncode escapes <, > and & as unicode sequences, therefore the json can not break out of the script tag.
+        return '<script type="application/ld+json">' . Json::htmlEncode($jsonld) . '</script>';
     }
 
     public function registerMetricPixel(Entity $entity)

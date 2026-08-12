@@ -39,7 +39,7 @@ class PageAction extends Action
 
         Module::getInstance()->setCurrentPage($page);
 
-        $this->registerData($page->getMetaJson()->getTitle(), $page->getMetaJson()->getDescription(), $page->getMetaJson()->getImage());
+        $this->registerPage($page);
 
         return $this->controller->render('@app/views/nitro', [
             'page' => $page,
