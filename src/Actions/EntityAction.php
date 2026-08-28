@@ -6,6 +6,7 @@ use Flyo\Api\EntitiesApi;
 use Flyo\ApiException;
 use Flyo\Configuration;
 use Flyo\Model\Entity;
+use Flyo\Yii\Module;
 use Flyo\Yii\Traits\MetaDataTrait;
 use yii\base\Action;
 use yii\base\InvalidConfigException;
@@ -34,6 +35,13 @@ class EntityAction extends Action
 
             if (!$entity instanceof Entity) {
                 throw new InvalidConfigException("The finder callable must return an instance of Entity.");
+            }
+
+            // A draft link is an expiring preview of an entity which is still offline in flyo. It must not be stored
+            // in any cache (server, cdn or browser), otherwise the preview would still be delivered after the draft
+            // expired or after its content changed, and there would be no way to tell an expired copy apart.
+            if ($entity->getIsDraft()) {
+                Module::getInstance()?->disableCache();
             }
 
             $this->registerEntity($entity);

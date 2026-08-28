@@ -4,11 +4,11 @@ namespace Flyo\Yii\Controllers;
 
 use Flyo\Yii\Actions\PageAction;
 use Flyo\Yii\Cache\VersionCacheDependency;
+use Flyo\Yii\Filters\NitroPageCache;
 use Flyo\Yii\Module;
 use Flyo\Yii\Traits\MetaDataTrait;
 use Yii;
 use yii\filters\HttpCache;
-use yii\filters\PageCache;
 use yii\web\Controller;
 
 /**
@@ -22,7 +22,7 @@ class NitroController extends Controller
     {
         return [
             [
-                'class' => PageCache::class,
+                'class' => NitroPageCache::class,
                 'cacheHeaders' => false,
                 'enabled' => YII_ENV_PROD && Module::getInstance()->serverPageCache,
                 'duration' => Module::getInstance()->serverPageCacheDuration,

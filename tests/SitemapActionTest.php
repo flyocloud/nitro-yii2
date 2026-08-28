@@ -2,7 +2,7 @@
 
 namespace Flyo\Yii\Tests;
 
-use Flyo\Model\EntityinterfaceInner;
+use Flyo\Model\SitemapinterfaceInner;
 use Flyo\Yii\Actions\SitemapAction;
 use yii\base\InvalidConfigException;
 use yii\console\Controller;
@@ -16,9 +16,9 @@ class SitemapActionTest extends BaseTestCase
         ]);
     }
 
-    private function createItem(?string $href, ?int $updatedAt = null): EntityinterfaceInner
+    private function createItem(?string $href, ?int $updatedAt = null): SitemapinterfaceInner
     {
-        return new EntityinterfaceInner(['href' => $href, 'updated_at' => $updatedAt]);
+        return new SitemapinterfaceInner(['href' => $href, 'updated_at' => $updatedAt]);
     }
 
     public function testDomainIsRequired()
