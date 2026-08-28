@@ -149,6 +149,66 @@ Highlighting/click-to-edit works only inside Flyo’s preview iframe.
 
 Outside preview, the page behaves normally.
 
+## Entity Detail and Draft Links
+
+An entity detail is rendered with the `EntityAction`, the `finder` callable resolves the entity from the api:
+
+```php
+public function actions()
+{
+    return [
+        'detail' => [
+            'class' => \Flyo\Yii\Actions\EntityAction::class,
+            'finder' => fn (\Flyo\Api\EntitiesApi $api) => $api->entityBySlug(Yii::$app->request->get('slug')),
+        ],
+    ];
+}
+```
+
+Flyo can hand out a **draft link** for an entity which is still offline: an expiring snapshot addressed by a token
+which takes the place of the unique id or the slug, so it is resolved through the very same call. Two things to keep
+in mind: a draft token does not look like a normal slug or unique id, therefore an url rule which validates the
+parameter against a pattern has to let it through, and `typeId` does not apply to a draft token.
+
+Whenever the api answers with a draft, the action turns **every** cache layer off for that request — server page
+cache, cdn cache and client cache — and the response is sent with `Cache-Control: no-store` (plus `no-store` for the
+cdn headers and without the `Last-Modified` / `Etag` validators). A draft is deliberately never stored anywhere, so
+there is no copy left which could outlive the draft or hide a change made in the meantime.
+
+Because that decision can only be made after the entity has been resolved, controllers which serve an `EntityAction`
+have to use `Flyo\Yii\Filters\NitroPageCache` instead of `yii\filters\PageCache`. It is the same filter, but it
+throws the recorded output away when the cache has been disabled during the request:
+
+```php
+public function behaviors()
+{
+    return [
+        [
+            'class' => \Flyo\Yii\Filters\NitroPageCache::class,
+            'only' => ['detail'],
+            'enabled' => YII_ENV_PROD && \Flyo\Yii\Module::getInstance()->serverPageCache,
+            'duration' => \Flyo\Yii\Module::getInstance()->serverPageCacheDuration,
+            'dependency' => new \Flyo\Yii\Cache\VersionCacheDependency(),
+            'variations' => [Yii::$app->request->getQueryParam('slug')],
+        ],
+    ];
+}
+```
+
+In the view the draft state is available on the entity, use it to render a hint for the editor:
+
+```php
+<?php if ($entity->getIsDraft()): ?>
+    <p>Draft preview, this entity is not online yet.
+       <?php if ($expiresAt = $entity->getDraftExpiresAt()): ?>
+           The link expires on <?= Yii::$app->formatter->asDatetime((int) $expiresAt); ?>.
+       <?php endif; ?>
+    </p>
+<?php endif; ?>
+```
+
+Any action which must not be cached can use the same switch: `\Flyo\Yii\Module::getInstance()->disableCache();`.
+
 ## Documentation
 
 [Read More about Flyo Nitro in general](https://dev.flyo.cloud/nitro)

@@ -117,6 +117,35 @@ class Module extends BaseModule implements BootstrapInterface
         return $this->liveEdit === null ? !YII_ENV_PROD : (bool) $this->liveEdit;
     }
 
+    private $_isCacheDisabled = false;
+
+    /**
+     * Turn off every cache layer for the current request: the server side page cache, the cdn edge cache and the
+     * cache of the client browser. Once disabled it can not be enabled again during the same request.
+     *
+     * This is used for content which must never be stored anywhere, for example a draft entity: a draft link is an
+     * expiring preview of an entity which is still offline in flyo, therefore a cached copy would still be delivered
+     * after the draft has expired or after the content of the draft has changed.
+     */
+    public function disableCache(): void
+    {
+        $this->_isCacheDisabled = true;
+
+        // the public properties are the values which are read by the cache filters and by the cdn header event, so
+        // whatever is evaluated after this call sees the disabled state as well.
+        $this->serverPageCache = false;
+        $this->cdnCache = false;
+        $this->clientHttpCache = false;
+    }
+
+    /**
+     * Whether the caching has been turned off during the runtime of the current request, see [[disableCache()]].
+     */
+    public function getIsCacheDisabled(): bool
+    {
+        return $this->_isCacheDisabled;
+    }
+
     public function init()
     {
         parent::init();
@@ -215,23 +244,49 @@ class Module extends BaseModule implements BootstrapInterface
         // To ensure proper prioritization, it is essential to prepend the rules. Otherwise, entity rules might take precedence over pages.
         $app->urlManager->addRules($rules, false);
 
-        if (YII_ENV_PROD) {
+        if ($app instanceof Application) {
             $app->response->on(Response::EVENT_BEFORE_SEND, function (Event $event) {
-                // its possible that during the runtime the cdnCache is disabled for specific actions
-                // therefore we need to check it again here
-                if (Module::getInstance()->cdnCache) {
-                    /** @var Response $sender */
-                    $sender = $event->sender;
-                    $sender->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
-                    $sender->headers->set('CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
-                } else {
-                    /** @var Response $sender */
-                    $sender = $event->sender;
-                    // explicitly disable cdn caching but client caching can still be active
-                    $sender->headers->set('Vercel-CDN-Cache-Control', 'no-store');
-                    $sender->headers->set('CDN-Cache-Control', 'no-store');
-                }
+                /** @var Response $sender */
+                $sender = $event->sender;
+                $this->applyResponseCacheHeaders($sender);
             });
+        }
+    }
+
+    /**
+     * Write the cache headers of the given response, this is the last word about how the response may be cached
+     * downstream because it runs right before the response is sent.
+     */
+    public function applyResponseCacheHeaders(Response $response): void
+    {
+        // A request which turned off the cache during its runtime (a draft entity for example) must not be stored
+        // anywhere, therefore the headers written by the http cache filter are overruled here. This happens in every
+        // environment, the response of such a request is never cacheable.
+        if ($this->getIsCacheDisabled()) {
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
+            $response->headers->set('Vercel-CDN-Cache-Control', 'no-store');
+            $response->headers->set('CDN-Cache-Control', 'no-store');
+            // without the validators a client can not revalidate a copy it should not have in the first place.
+            $response->headers->remove('Last-Modified');
+            $response->headers->remove('Etag');
+            return;
+        }
+
+        if (!YII_ENV_PROD) {
+            return;
+        }
+
+        // its possible that during the runtime the cdnCache is disabled for specific actions
+        // therefore we need to check it again here
+        if ($this->cdnCache) {
+            $response->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
+            $response->headers->set('CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
+        } else {
+            // explicitly disable cdn caching but client caching can still be active
+            $response->headers->set('Vercel-CDN-Cache-Control', 'no-store');
+            $response->headers->set('CDN-Cache-Control', 'no-store');
         }
     }
 }

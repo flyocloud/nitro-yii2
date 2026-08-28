@@ -1,3 +1,110 @@
+# Upgrade to 3.4
+
+`flyo/nitro-php` is required in `^3.0` now, run `composer update flyo/nitro-php` when updating.
+
+## Sitemap items have their own model
+
+The sitemap endpoint of the api returns a reduced model: `Flyo\Api\SitemapApi::sitemap()` now delivers
+`\Flyo\Model\SitemapinterfaceInner[]` instead of `\Flyo\Model\EntityinterfaceInner[]`. A sitemap item only
+carries `entity_unique_id`, `updated_at` and `href` (plus the deprecated `entity_type`, `entity_slug` and `routes`),
+the presentation getters `getEntityTitle()`, `getEntityTeaser()`, `getEntityImage()`, `getEntityTimeStart()` and
+`getEntityTypeId()` are gone. They are still available on `SearchApi::search()` and on the entities endpoint.
+
+`Flyo\Yii\Actions\SitemapAction` only reads `href` and `updated_at`, so it works with the new model without any
+change to your action configuration. **You only have to act if you pass your own items into
+`SitemapAction::generateXml()` or type hint the sitemap response yourself:**
+
+```php
+-/** @var \Flyo\Model\EntityinterfaceInner[] $items */
++/** @var \Flyo\Model\SitemapinterfaceInner[] $items */
+ $items = (new \Flyo\Api\SitemapApi())->sitemap();
+```
+
+Entries without a resolvable url are omitted by the api now (they were already skipped by the action), and
+`updated_at` of a page only moves when the delivered content actually changed.
+
+## Draft entities are never cached
+
+`\Flyo\Model\Entity` gained `is_draft` and `draft_expires_at`. A draft link is an expiring snapshot of an entity
+which is still offline in Flyo, addressed by a token which takes the place of the unique id or the slug, so it is
+resolved through the same `EntitiesApi::entityByUniqueid()` and `EntitiesApi::entityBySlug()` calls.
+
+`Flyo\Yii\Actions\EntityAction` detects such a response and turns **every** cache layer off for that request. No
+server side page cache, no cdn cache and no client cache — a draft is deliberately never stored anywhere, so an
+expired or changed draft can never be delivered from a copy. The response of a draft request carries:
+
+```
+Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+Pragma: no-cache
+Expires: 0
+CDN-Cache-Control: no-store
+Vercel-CDN-Cache-Control: no-store
+```
+
+and the `Last-Modified` / `Etag` validators are removed, so a client can not revalidate a copy into a `304` either.
+
+### What to do when updating
+
+1. **Let the draft token through your url rules.** A draft token does not look like a slug or a unique id, so a route
+   which validates the parameter against a pattern has to accept it:
+
+   ```php
+   -'news/<slug:[a-z0-9\-]+>' => 'news/detail',
+   +'news/<slug:[a-zA-Z0-9\-_\.]+>' => 'news/detail',
+   ```
+
+2. **Do not pass `typeId` when resolving a draft token**, it does not apply to a draft.
+
+3. **Use `Flyo\Yii\Filters\NitroPageCache` instead of `yii\filters\PageCache`** in every controller which serves an
+   `EntityAction`. Whether a response may be cached is only known once the entity has been resolved, which happens
+   after `yii\filters\PageCache` decided to record the output — the plain filter would therefore store a draft on the
+   server and hand it to everybody requesting the same url. `NitroPageCache` behaves exactly like `PageCache` but
+   drops the recorded output when the cache has been disabled during the request:
+
+   ```php
+   public function behaviors()
+   {
+       return [
+           [
+   -           'class' => \yii\filters\PageCache::class,
+   +           'class' => \Flyo\Yii\Filters\NitroPageCache::class,
+               'only' => ['detail'],
+               'enabled' => YII_ENV_PROD && \Flyo\Yii\Module::getInstance()->serverPageCache,
+               'duration' => \Flyo\Yii\Module::getInstance()->serverPageCacheDuration,
+               'dependency' => new \Flyo\Yii\Cache\VersionCacheDependency(),
+               'variations' => [Yii::$app->request->getQueryParam('slug')],
+           ],
+       ];
+   }
+   ```
+
+   The `flyo/nitro/index` route of the module (the page rendering) already uses it.
+
+4. **Any other cache in front of your application** (a reverse proxy, a full page cache of your own, a static export)
+   has to respect `Cache-Control: no-store` or ask `\Flyo\Yii\Module::getInstance()->getIsCacheDisabled()`.
+
+5. **Render a hint for editors**, the entity is available in the detail view:
+
+   ```php
+   <?php if ($entity->getIsDraft()): ?>
+       <p>Draft preview, this entity is not online yet.
+          <?php if ($expiresAt = $entity->getDraftExpiresAt()): ?>
+              The link expires on <?= Yii::$app->formatter->asDatetime((int) $expiresAt); ?>.
+          <?php endif; ?>
+       </p>
+   <?php endif; ?>
+   ```
+
+### Turning the cache off yourself
+
+`Module::disableCache()` is public, so any action which must not be cached can use the same mechanism:
+
+```php
+\Flyo\Yii\Module::getInstance()->disableCache();
+```
+
+It switches `serverPageCache`, `cdnCache` and `clientHttpCache` off for the current request and can not be undone.
+
 # Upgrade to 3.3
 
 Live edit (the nitro js bridge) moved from the `Editable` widget into the module.
