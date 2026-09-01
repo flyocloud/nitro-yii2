@@ -34,16 +34,35 @@ trait MetaDataTrait
         }
     }
 
+    public function registerCanonical($url)
+    {
+        /** @var View $view */
+        $view = Yii::$app->view;
+
+        // $url must be the absolute URL of the canonical page.
+        $url = rtrim(Yii::$app->request->absoluteUrl, '/') . '/' . ltrim($url, '/');
+
+        $view->registerLinkTag(['rel' => 'canonical', 'href' => $url]);
+    }
+
     public function registerPage(Page $page)
     {
         $this->registerData($page->getMetaJson()->getTitle(), $page->getMetaJson()->getDescription(), $page->getMetaJson()->getImage());
         $this->registerJsonld($page->getJsonld());
+
+        if (!empty($page->getHref())) {
+            $this->registerCanonical($page->getHref());
+        }
     }
 
     public function registerEntity(Entity $entity)
     {
         $this->registerData($entity->getEntity()->getEntityTitle(), $entity->getEntity()->getEntityTeaser(), $entity->getEntity()->getEntityImage());
         $this->registerJsonld($entity->getJsonld());
+
+        if (!empty($entity->getCanonical())) {
+            $this->registerCanonical($entity->getCanonical());
+        }
     }
 
     /**
