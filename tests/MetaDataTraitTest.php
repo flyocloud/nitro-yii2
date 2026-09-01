@@ -8,6 +8,7 @@ use Flyo\Model\Meta;
 use Flyo\Model\Page;
 use Flyo\Yii\Traits\MetaDataTrait;
 use yii\web\View;
+use yii\web\Request;
 
 class MetaDataTraitTest extends BaseTestCase
 {
@@ -110,5 +111,20 @@ class MetaDataTraitTest extends BaseTestCase
         $this->createSubject()->registerEntity($entity);
 
         $this->assertSame('', $this->renderBody());
+    }
+
+    public function testRegisterCanonicalBuildsUrlFromDomainBase()
+    {
+        $request = new Request();
+        $request->hostInfo = 'https://example.test';
+        $request->baseUrl = '';
+        $this->app->set('request', $request);
+
+        $this->createSubject()->registerCanonical('/canonical-path');
+
+        $this->assertStringContainsString(
+            'href="https://example.test/canonical-path"',
+            $this->app->view->linkTags[0]
+        );
     }
 }

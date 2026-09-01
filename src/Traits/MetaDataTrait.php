@@ -7,6 +7,7 @@ use Flyo\Model\Entity;
 use Flyo\Model\Page;
 use Yii;
 use yii\helpers\Json;
+use yii\helpers\Url;
 use yii\web\View;
 
 trait MetaDataTrait
@@ -39,8 +40,7 @@ trait MetaDataTrait
         /** @var View $view */
         $view = Yii::$app->view;
 
-        // $url must be the absolute URL of the canonical page.
-        $url = rtrim(Yii::$app->request->absoluteUrl, '/') . '/' . ltrim($url, '/');
+        $url = rtrim(Url::base(true), '/') . '/' . ltrim($url, '/');
 
         $view->registerLinkTag(['rel' => 'canonical', 'href' => $url]);
     }
