@@ -45,10 +45,38 @@ trait MetaDataTrait
         $view->registerLinkTag(['rel' => 'canonical', 'href' => $url]);
     }
 
+    /**
+     * Register the robots meta tag for a page or entity which must not be indexed by search engines.
+     *
+     * This is not access control, the page is still delivered and reachable by its url.
+     */
+    public function registerNoIndex()
+    {
+        /** @var View $view */
+        $view = Yii::$app->view;
+
+        $view->registerMetaTag(['name' => 'robots', 'content' => 'noindex, nofollow'], 'robots');
+    }
+
+    /**
+     * Register the robots meta tag whenever the given `is_indexable` information is explicitly falsy.
+     *
+     * A `null` value means the information is not provided (older Nitro API), the page is then treated as indexable.
+     *
+     * @param bool|int|null $isIndexable
+     */
+    public function registerRobots($isIndexable)
+    {
+        if ($isIndexable !== null && !$isIndexable) {
+            $this->registerNoIndex();
+        }
+    }
+
     public function registerPage(Page $page)
     {
         $this->registerData($page->getMetaJson()->getTitle(), $page->getMetaJson()->getDescription(), $page->getMetaJson()->getImage());
         $this->registerJsonld($page->getJsonld());
+        $this->registerRobots($page->getIsIndexable());
 
         if (!empty($page->getHref())) {
             $this->registerCanonical($page->getHref());
@@ -59,6 +87,7 @@ trait MetaDataTrait
     {
         $this->registerData($entity->getEntity()->getEntityTitle(), $entity->getEntity()->getEntityTeaser(), $entity->getEntity()->getEntityImage());
         $this->registerJsonld($entity->getJsonld());
+        $this->registerRobots($entity->getIsIndexable());
 
         if (!empty($entity->getCanonical())) {
             $this->registerCanonical($entity->getCanonical());

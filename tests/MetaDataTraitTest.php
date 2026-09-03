@@ -113,6 +113,65 @@ class MetaDataTraitTest extends BaseTestCase
         $this->assertSame('', $this->renderBody());
     }
 
+    public function testNonIndexablePageRegistersRobotsNoIndex()
+    {
+        $page = new Page([
+            'meta_json' => new Meta(['title' => 'Page Title', 'description' => 'Page Description']),
+            'is_indexable' => 0,
+        ]);
+
+        $this->createSubject()->registerPage($page);
+
+        $this->assertStringContainsString('noindex', implode('', $this->app->view->metaTags));
+    }
+
+    public function testIndexablePageRegistersNoRobotsTag()
+    {
+        $page = new Page([
+            'meta_json' => new Meta(['title' => 'Page Title', 'description' => 'Page Description']),
+            'is_indexable' => 1,
+        ]);
+
+        $this->createSubject()->registerPage($page);
+
+        $this->assertStringNotContainsString('noindex', implode('', $this->app->view->metaTags));
+    }
+
+    public function testPageWithoutIndexableInformationRegistersNoRobotsTag()
+    {
+        $page = new Page([
+            'meta_json' => new Meta(['title' => 'Page Title', 'description' => 'Page Description']),
+        ]);
+
+        $this->createSubject()->registerPage($page);
+
+        $this->assertStringNotContainsString('noindex', implode('', $this->app->view->metaTags));
+    }
+
+    public function testNonIndexableEntityRegistersRobotsNoIndex()
+    {
+        $entity = new Entity([
+            'entity' => new EntityInterface(['entity_title' => 'Entity Title', 'entity_teaser' => 'Entity Teaser']),
+            'is_indexable' => false,
+        ]);
+
+        $this->createSubject()->registerEntity($entity);
+
+        $this->assertStringContainsString('noindex', implode('', $this->app->view->metaTags));
+    }
+
+    public function testIndexableEntityRegistersNoRobotsTag()
+    {
+        $entity = new Entity([
+            'entity' => new EntityInterface(['entity_title' => 'Entity Title', 'entity_teaser' => 'Entity Teaser']),
+            'is_indexable' => true,
+        ]);
+
+        $this->createSubject()->registerEntity($entity);
+
+        $this->assertStringNotContainsString('noindex', implode('', $this->app->view->metaTags));
+    }
+
     public function testRegisterCanonicalBuildsUrlFromDomainBase()
     {
         $request = new Request();
