@@ -95,6 +95,55 @@ class Module extends BaseModule implements BootstrapInterface
     public $clientHttpCacheDuration = 1800; // 30min
 
     /**
+     * @var int How many seconds the answer of the version api is reused before it is requested again. `0` is the
+     * default and requests it on every evaluation of [[\Flyo\Yii\Cache\VersionCacheDependency]].
+     *
+     * The dependency asks the version api whether a cached entry is still current, and yii evaluates it on **every**
+     * read of a cache entry, not only when one is written. With `0` the module therefore opens a connection to flyo on
+     * every request which reaches the origin. The answer is a few bytes, but php keeps no connection pool between
+     * requests, so it costs a dns lookup, a tcp handshake and a tls handshake before the request itself: roughly three
+     * round trips on the critical path of a response which was otherwise served completely from the cache.
+     *
+     * An interval reuses the last answer for that many seconds. What it trades away is precision: content published in
+     * flyo is picked up by the server side cache up to this many seconds later.
+     *
+     * **It only pays off above a certain traffic level**, which is why it is off by default. The version api can not be
+     * asked more than once per interval, so the calls per day are capped at `86400 / interval`. As long as the requests
+     * arrive further apart than the interval nothing is saved at all:
+     *
+     * ```
+     * interval | at most ... version calls per day | saves nothing below ... requests per day
+     *      10s | 8,640                             | 8,640
+     *      15s | 5,760                             | 5,760
+     *      30s | 2,880                             | 2,880
+     *      60s | 1,440                             | 1,440
+     * ```
+     *
+     * Measured against the requests the integration makes to flyo per day, which is the number visible on the flyo
+     * side, a 30 second interval removes:
+     *
+     * ```
+     * requests per day | version calls left | removed
+     *            2,880 | 2,880              | 0%
+     *           10,000 | 2,880              | 71%
+     *           50,000 | 2,880              | 94%
+     *          100,000 | 2,880              | 97%
+     *        1,000,000 | 2,880              | 99.7%
+     * ```
+     *
+     * Rule of thumb: leave it at `0` below roughly 10,000 requests per day, there is nothing to win and the instant
+     * invalidation is worth more. Set it to `15` or `30` from roughly 50,000 requests per day upwards, about 35
+     * requests per minute sustained, where it removes more than 90% of the calls and takes the round trip off almost
+     * every response.
+     *
+     * The interval is stored in the cache which evaluates the dependency, so a shared cache (redis, memcached) means
+     * one call per interval for the whole cluster, while a per node cache (file cache, and every serverless instance
+     * has its own) means one call per interval per node. A [[\yii\caching\DummyCache]] stores nothing and therefore
+     * behaves exactly like `0`.
+     */
+    public $versionCheckInterval = 0;
+
+    /**
      * @var callable Additinal variation informations for the page, for example if you have a custom query param somewhere else:
      *
      * 'cacheVariation' => function() {
