@@ -62,4 +62,52 @@ class ModuleCacheTest extends BaseTestCase
 
         $this->assertSame('public, max-age=1800', $response->headers->get('Cache-Control'));
     }
+
+    public function testCdnCacheControlCarriesStaleWhileRevalidateByDefault()
+    {
+        $this->assertSame(
+            'max-age=1800, stale-while-revalidate=1800',
+            $this->createModule()->getCdnCacheControlHeader()
+        );
+    }
+
+    public function testCdnCacheControlUsesTheConfiguredDurations()
+    {
+        $module = $this->createModule([
+            'cdnCacheDuration' => 60,
+            'cdnCacheStaleWhileRevalidateDuration' => 86400,
+        ]);
+
+        $this->assertSame('max-age=60, stale-while-revalidate=86400', $module->getCdnCacheControlHeader());
+    }
+
+    public function testCdnCacheControlOmitsStaleWhileRevalidateWhenDisabled()
+    {
+        $module = $this->createModule(['cdnCacheStaleWhileRevalidateDuration' => 0]);
+
+        $this->assertSame('max-age=1800', $module->getCdnCacheControlHeader());
+    }
+
+    public function testCdnCacheControlIsNoStoreWhenTheCdnCacheIsTurnedOff()
+    {
+        $module = $this->createModule(['cdnCache' => false]);
+
+        $this->assertSame('no-store', $module->getCdnCacheControlHeader());
+
+        // a disabled cdn cache must not leak a stale window either
+        $module->cdnCacheStaleWhileRevalidateDuration = 86400;
+        $this->assertSame('no-store', $module->getCdnCacheControlHeader());
+    }
+
+    public function testDisabledCacheOverrulesTheStaleWhileRevalidateWindow()
+    {
+        $response = new Response();
+
+        $module = $this->createModule();
+        $module->disableCache();
+        $module->applyResponseCacheHeaders($response);
+
+        $this->assertSame('no-store', $response->headers->get('CDN-Cache-Control'));
+        $this->assertSame('no-store', $response->headers->get('Vercel-CDN-Cache-Control'));
+    }
 }

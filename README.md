@@ -209,6 +209,36 @@ In the view the draft state is available on the entity, use it to render a hint 
 
 Any action which must not be cached can use the same switch: `\Flyo\Yii\Module::getInstance()->disableCache();`.
 
+## CDN Caching
+
+In production the module writes `Vercel-CDN-Cache-Control` and `CDN-Cache-Control` on every response, they are the
+instructions for the edge cache in front of the application:
+
+```
+Vercel-CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
+CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
+```
+
+`max-age` comes from `cdnCacheDuration` and says how long the edge serves a copy without asking the origin at all.
+`stale-while-revalidate` comes from `cdnCacheStaleWhileRevalidateDuration` and covers what happens afterwards: instead
+of every visitor waiting for a fresh render the moment the entry expires, the edge answers from the stale copy and
+refreshes itself with a single background request. Without it a popular url sends a burst of concurrent requests to
+the origin at every expiry, which is exactly when the origin is least able to take it.
+
+```php
+'modules' => [
+    'flyo' => [
+        'class' => \Flyo\Yii\Module::class,
+        'token' => 'YOUR_TOKEN',
+        'cdnCacheDuration' => 1800,
+        'cdnCacheStaleWhileRevalidateDuration' => 1800, // set to 0 to omit the directive
+    ]
+]
+```
+
+Set `cdnCache` to `false` to tell the edge to store nothing, the client cache (`clientHttpCache`) stays independent
+of it. A request which called `disableCache()` always wins over all of this and is sent with `no-store`.
+
 ## Documentation
 
 [Read More about Flyo Nitro in general](https://dev.flyo.cloud/nitro)

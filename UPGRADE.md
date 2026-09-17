@@ -23,6 +23,37 @@ change to your action configuration. **You only have to act if you pass your own
 Entries without a resolvable url are omitted by the api now (they were already skipped by the action), and
 `updated_at` of a page only moves when the delivered content actually changed.
 
+## The cdn headers carry `stale-while-revalidate`
+
+`Vercel-CDN-Cache-Control` and `CDN-Cache-Control` used to be written as `max-age=<cdnCacheDuration>` only, which
+turns the moment an edge entry expires into an origin request for every visitor waiting on that url at that moment.
+They now carry a `stale-while-revalidate` window as well, so the edge answers from the stale copy and refreshes
+itself with a single background request:
+
+```
+-Vercel-CDN-Cache-Control: max-age=1800
+-CDN-Cache-Control: max-age=1800
++Vercel-CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
++CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
+```
+
+The window is configured with the new `Module::$cdnCacheStaleWhileRevalidateDuration` (`1800` by default, same as
+`cdnCacheDuration`). Nothing has to be changed to get the new behavior, set it to `0` to keep the old headers:
+
+```php
+'flyo' => [
+    'class' => \Flyo\Yii\Module::class,
+    'token' => 'YOUR_TOKEN',
++   'cdnCacheStaleWhileRevalidateDuration' => 0,
+],
+```
+
+Note that a visitor can now be served a page which is up to `cdnCacheDuration + cdnCacheStaleWhileRevalidateDuration`
+seconds old, but only until the background refresh of the first request after the expiry has finished. `cdnCache` set
+to `false` and `disableCache()` are unaffected, both still send `no-store` to the edge.
+
+`Module::getCdnCacheControlHeader()` builds the value and can be used to assert the headers of your own responses.
+
 ## Draft entities are never cached
 
 `\Flyo\Model\Entity` gained `is_draft` and `draft_expires_at`. A draft link is an expiring snapshot of an entity
