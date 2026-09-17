@@ -95,6 +95,69 @@ class Module extends BaseModule implements BootstrapInterface
     public $clientHttpCacheDuration = 1800; // 30min
 
     /**
+     * @var int How many **seconds** the answer of the version api is reused before it is requested again. `0` is the
+     * default and requests it on every evaluation of [[\Flyo\Yii\Cache\VersionCacheDependency]].
+     *
+     * The dependency asks the version api whether a cached entry is still current, and yii evaluates it on **every**
+     * read of a cache entry, not only when one is written. With `0` the module therefore opens a connection to flyo on
+     * every request which reaches the origin. The answer is a few bytes, but php keeps no connection pool between
+     * requests, so it costs a dns lookup, a tcp handshake and a tls handshake before the request itself: roughly three
+     * round trips on the critical path of a response which was otherwise served completely from the cache.
+     *
+     * An interval reuses the last answer for that many seconds. The api can therefore not be asked more than once per
+     * interval and the calls per day are capped at `86400 / interval`. As long as the requests arrive further apart
+     * than the interval nothing is saved at all, which is the number the left column has to be read against:
+     *
+     * ```
+     * interval | at most ... version calls per day | saves nothing below ... requests per day
+     *      30s | 2,880                             | 2,880
+     *      60s | 1,440                             | 1,440
+     *     120s | 720                               | 720
+     *     300s | 288                               | 288
+     * ```
+     *
+     * Share of the calls which is removed, measured against the requests the integration makes to flyo per day:
+     *
+     * ```
+     * requests per day |  30s |  60s | 120s | 300s
+     *            1,000 |   0% |   0% |  28% |  71%
+     *            5,000 |  42% |  71% |  86% |  94%
+     *           10,000 |  71% |  86% |  93% |  97%
+     *           50,000 |  94% |  97% |  99% |  99%
+     *        1,000,000 | 100% | 100% | 100% | 100%
+     * ```
+     *
+     * What it costs is precision: content published in flyo is picked up by the server side cache up to this many
+     * seconds later. **Choose the interval against the cache layer in front of it, not in absolute terms.** With a cdn
+     * the edge already holds a copy for [[$cdnCacheDuration]] plus [[$cdnCacheStaleWhileRevalidateDuration]], so a few
+     * minutes at the origin disappear in that window:
+     *
+     * ```
+     * interval | worst case a visitor can see, with the default 1800s + 900s cdn settings
+     *        0 | 45min 00s
+     *      30s | 45min 30s
+     *      60s | 46min 00s
+     *     120s | 47min 00s
+     *     300s | 50min 00s
+     * ```
+     *
+     * Recommended values:
+     *
+     * - `300` (5min) when a cdn is in front, which is the normal setup. It removes more than 90% of the calls from
+     *   roughly 3,000 requests per day upwards and costs 5 of the 45 minutes the edge is stale anyway.
+     * - `30` to `60` when [[$cdnCache]] is off and the server page cache is the only layer, so the interval is the
+     *   whole staleness a visitor can see.
+     * - `0` when an editor has to see a publish immediately without a cdn purge, for example on a staging or review
+     *   deployment.
+     *
+     * The value is stored in the cache which evaluates the dependency, so a shared cache (redis, memcached) means one
+     * call per interval for the whole cluster, while a per node cache (file cache, and every serverless instance has
+     * its own) means one call per interval per node. A [[\yii\caching\DummyCache]] stores nothing and therefore
+     * behaves exactly like `0`.
+     */
+    public $versionCheckInterval = 0;
+
+    /**
      * @var callable Additinal variation informations for the page, for example if you have a custom query param somewhere else:
      *
      * 'cacheVariation' => function() {

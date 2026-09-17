@@ -239,6 +239,84 @@ the origin at every expiry, which is exactly when the origin is least able to ta
 Set `cdnCache` to `false` to tell the edge to store nothing, the client cache (`clientHttpCache`) stays independent
 of it. A request which called `disableCache()` always wins over all of this and is sent with `no-store`.
 
+## Server Page Cache and the Version Check
+
+With `serverPageCache` enabled the rendered page and the nitro config are kept in the yii cache for
+`serverPageCacheDuration` seconds. `Flyo\Yii\Cache\VersionCacheDependency` makes that safe: it asks the flyo version
+api whether the content has changed, so a long duration never delivers outdated content.
+
+Both switches hang on the same flag, which is worth knowing before turning it off:
+
+| `serverPageCache` | flyo api calls per request which reaches the origin |
+| --- | --- |
+| `true` | 1, the version check |
+| `false` | 2, the config and the page, both uncached |
+
+Turning the server page cache off does not make the module quieter, it makes it louder. It only removes the version
+check, and in exchange every request resolves the config and the page against the api again.
+
+### `versionCheckInterval`
+
+Yii evaluates a cache dependency on **every read** of a cache entry, so by default the version api is asked once per
+request which reaches the origin. The answer is tiny, but php keeps no connection pool between requests, so it costs a
+dns lookup plus a tcp and a tls handshake before the request itself.
+
+`versionCheckInterval` reuses the last answer for that many **seconds**. It is `0` (off) by default:
+
+```php
+'flyo' => [
+    'class' => \Flyo\Yii\Module::class,
+    'token' => 'YOUR_TOKEN',
+    'versionCheckInterval' => 300, // seconds, 0 disables the throttling
+],
+```
+
+The api can not be asked more than once per interval, so the calls per day are capped at `86400 / interval`. As long
+as requests arrive further apart than the interval, nothing is saved:
+
+| interval | at most ... version calls per day | saves nothing below ... requests per day |
+| --- | --- | --- |
+| 30s | 2,880 | 2,880 |
+| 60s | 1,440 | 1,440 |
+| 120s | 720 | 720 |
+| 300s | 288 | 288 |
+
+Share of the calls which is removed:
+
+| requests per day | 30s | 60s | 120s | 300s |
+| --- | --- | --- | --- | --- |
+| 1,000 | 0% | 0% | 28% | 71% |
+| 5,000 | 42% | 71% | 86% | 94% |
+| 10,000 | 71% | 86% | 93% | 97% |
+| 50,000 | 94% | 97% | 99% | 99% |
+| 1,000,000 | 100% | 100% | 100% | 100% |
+
+#### Choosing the interval
+
+What the interval costs is precision: content published in flyo is picked up by the server side cache up to this many
+seconds later. Pick it against the cache layer in front of it, not in absolute terms. With a cdn the edge already
+holds a copy for `cdnCacheDuration` plus `cdnCacheStaleWhileRevalidateDuration`, so a few minutes at the origin
+disappear in that window:
+
+| interval | worst case a visitor can see, with the default 1800s + 900s cdn settings |
+| --- | --- |
+| `0` | 45min 00s |
+| `30` | 45min 30s |
+| `60` | 46min 00s |
+| `120` | 47min 00s |
+| `300` | 50min 00s |
+
+- **`300` (5min) when a cdn is in front**, which is the normal setup. It removes more than 90% of the calls from
+  roughly 3,000 requests per day upwards and costs 5 of the 45 minutes the edge is stale anyway.
+- **`30` to `60` when `cdnCache` is off** and the server page cache is the only layer, because then the interval is
+  the whole staleness a visitor can see.
+- **`0` when an editor has to see a publish immediately** without a cdn purge, for example on a staging or review
+  deployment.
+
+The value is stored in the cache which evaluates the dependency, so a shared cache (redis, memcached) means one call
+per interval for the whole cluster, a per node cache (file cache, and every serverless instance has its own) means one
+call per interval per node. A `DummyCache` stores nothing and therefore behaves exactly like `0`.
+
 ## Documentation
 
 [Read More about Flyo Nitro in general](https://dev.flyo.cloud/nitro)
