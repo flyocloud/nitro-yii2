@@ -66,7 +66,7 @@ class ModuleCacheTest extends BaseTestCase
     public function testCdnCacheControlCarriesStaleWhileRevalidateByDefault()
     {
         $this->assertSame(
-            'max-age=1800, stale-while-revalidate=1800',
+            'max-age=1800, stale-while-revalidate=900',
             $this->createModule()->getCdnCacheControlHeader()
         );
     }

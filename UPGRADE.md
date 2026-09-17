@@ -33,11 +33,11 @@ itself with a single background request:
 ```
 -Vercel-CDN-Cache-Control: max-age=1800
 -CDN-Cache-Control: max-age=1800
-+Vercel-CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
-+CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
++Vercel-CDN-Cache-Control: max-age=1800, stale-while-revalidate=900
++CDN-Cache-Control: max-age=1800, stale-while-revalidate=900
 ```
 
-The window is configured with the new `Module::$cdnCacheStaleWhileRevalidateDuration` (`1800` by default, same as
+The window is configured with the new `Module::$cdnCacheStaleWhileRevalidateDuration` (`900` by default, half of
 `cdnCacheDuration`). Nothing has to be changed to get the new behavior, set it to `0` to keep the old headers:
 
 ```php

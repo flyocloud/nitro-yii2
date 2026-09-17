@@ -80,7 +80,7 @@ class Module extends BaseModule implements BootstrapInterface
      *
      * Set to `0` to omit the directive.
      */
-    public $cdnCacheStaleWhileRevalidateDuration = 1800; // 30min
+    public $cdnCacheStaleWhileRevalidateDuration = 900; // 15min
 
     /**
      * @var boolean Whether a client cache header should be sent for pages or not, if enabled in production the page will be cached for 30mins in

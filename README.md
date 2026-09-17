@@ -215,8 +215,8 @@ In production the module writes `Vercel-CDN-Cache-Control` and `CDN-Cache-Contro
 instructions for the edge cache in front of the application:
 
 ```
-Vercel-CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
-CDN-Cache-Control: max-age=1800, stale-while-revalidate=1800
+Vercel-CDN-Cache-Control: max-age=1800, stale-while-revalidate=900
+CDN-Cache-Control: max-age=1800, stale-while-revalidate=900
 ```
 
 `max-age` comes from `cdnCacheDuration` and says how long the edge serves a copy without asking the origin at all.
@@ -231,7 +231,7 @@ the origin at every expiry, which is exactly when the origin is least able to ta
         'class' => \Flyo\Yii\Module::class,
         'token' => 'YOUR_TOKEN',
         'cdnCacheDuration' => 1800,
-        'cdnCacheStaleWhileRevalidateDuration' => 1800, // set to 0 to omit the directive
+        'cdnCacheStaleWhileRevalidateDuration' => 900, // set to 0 to omit the directive
     ]
 ]
 ```
