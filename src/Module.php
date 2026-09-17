@@ -71,6 +71,18 @@ class Module extends BaseModule implements BootstrapInterface
     public $cdnCacheDuration = 1800; // 30min
 
     /**
+     * @var int How many seconds a CDN may keep serving an expired copy while it fetches a fresh one in the background,
+     * emitted as the `stale-while-revalidate` directive next to [[$cdnCacheDuration]].
+     *
+     * Without it every url turns into an origin request the moment its edge entry expires, so a popular url sends a
+     * burst of concurrent requests to the origin at that point. With it the edge answers from the stale copy and
+     * refreshes itself with a single background request, which keeps the origin load flat and the response fast.
+     *
+     * Set to `0` to omit the directive.
+     */
+    public $cdnCacheStaleWhileRevalidateDuration = 900; // 15min
+
+    /**
      * @var boolean Whether a client cache header should be sent for pages or not, if enabled in production the page will be cached for 30mins in
      * the clients browser cache.
      */
@@ -280,13 +292,29 @@ class Module extends BaseModule implements BootstrapInterface
 
         // its possible that during the runtime the cdnCache is disabled for specific actions
         // therefore we need to check it again here
-        if ($this->cdnCache) {
-            $response->headers->set('Vercel-CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
-            $response->headers->set('CDN-Cache-Control', "max-age={$this->cdnCacheDuration}");
-        } else {
-            // explicitly disable cdn caching but client caching can still be active
-            $response->headers->set('Vercel-CDN-Cache-Control', 'no-store');
-            $response->headers->set('CDN-Cache-Control', 'no-store');
+        $cdnCacheControl = $this->getCdnCacheControlHeader();
+        $response->headers->set('Vercel-CDN-Cache-Control', $cdnCacheControl);
+        $response->headers->set('CDN-Cache-Control', $cdnCacheControl);
+    }
+
+    /**
+     * The value for the cdn cache headers, see [[$cdnCache]], [[$cdnCacheDuration]] and
+     * [[$cdnCacheStaleWhileRevalidateDuration]].
+     *
+     * When the cdn cache is turned off the edge is told to store nothing, the client cache can still be active.
+     */
+    public function getCdnCacheControlHeader(): string
+    {
+        if (!$this->cdnCache) {
+            return 'no-store';
         }
+
+        $directives = ["max-age={$this->cdnCacheDuration}"];
+
+        if ($this->cdnCacheStaleWhileRevalidateDuration > 0) {
+            $directives[] = "stale-while-revalidate={$this->cdnCacheStaleWhileRevalidateDuration}";
+        }
+
+        return implode(', ', $directives);
     }
 }
