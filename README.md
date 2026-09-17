@@ -261,31 +261,57 @@ Yii evaluates a cache dependency on **every read** of a cache entry, so by defau
 request which reaches the origin. The answer is tiny, but php keeps no connection pool between requests, so it costs a
 dns lookup plus a tcp and a tls handshake before the request itself.
 
-`versionCheckInterval` reuses the last answer for that many seconds. It is `0` (off) by default, because it trades
-precision for volume and that trade only pays off above a certain traffic level:
+`versionCheckInterval` reuses the last answer for that many **seconds**. It is `0` (off) by default:
 
 ```php
 'flyo' => [
     'class' => \Flyo\Yii\Module::class,
     'token' => 'YOUR_TOKEN',
-    'versionCheckInterval' => 30, // seconds, 0 disables the throttling
+    'versionCheckInterval' => 300, // seconds, 0 disables the throttling
 ],
 ```
 
 The api can not be asked more than once per interval, so the calls per day are capped at `86400 / interval`. As long
 as requests arrive further apart than the interval, nothing is saved:
 
-| requests per day | no interval | interval 15s | interval 30s | interval 60s |
-| --- | --- | --- | --- | --- |
-| 1,000 | 1,000 | 1,000 | 1,000 | 1,000 |
-| 10,000 | 10,000 | 5,760 | 2,880 | 1,440 |
-| 50,000 | 50,000 | 5,760 | 2,880 | 1,440 |
-| 100,000 | 100,000 | 5,760 | 2,880 | 1,440 |
-| 1,000,000 | 1,000,000 | 5,760 | 2,880 | 1,440 |
+| interval | at most ... version calls per day | saves nothing below ... requests per day |
+| --- | --- | --- |
+| 30s | 2,880 | 2,880 |
+| 60s | 1,440 | 1,440 |
+| 120s | 720 | 720 |
+| 300s | 288 | 288 |
 
-Rule of thumb: leave it at `0` below roughly 10,000 requests per day, the instant invalidation is worth more than the
-few calls it would save. Set it to `15` or `30` from roughly 50,000 requests per day upwards, about 35 requests per
-minute sustained, where it removes more than 90% of the calls.
+Share of the calls which is removed:
+
+| requests per day | 30s | 60s | 120s | 300s |
+| --- | --- | --- | --- | --- |
+| 1,000 | 0% | 0% | 28% | 71% |
+| 5,000 | 42% | 71% | 86% | 94% |
+| 10,000 | 71% | 86% | 93% | 97% |
+| 50,000 | 94% | 97% | 99% | 99% |
+| 1,000,000 | 100% | 100% | 100% | 100% |
+
+#### Choosing the interval
+
+What the interval costs is precision: content published in flyo is picked up by the server side cache up to this many
+seconds later. Pick it against the cache layer in front of it, not in absolute terms. With a cdn the edge already
+holds a copy for `cdnCacheDuration` plus `cdnCacheStaleWhileRevalidateDuration`, so a few minutes at the origin
+disappear in that window:
+
+| interval | worst case a visitor can see, with the default 1800s + 900s cdn settings |
+| --- | --- |
+| `0` | 45min 00s |
+| `30` | 45min 30s |
+| `60` | 46min 00s |
+| `120` | 47min 00s |
+| `300` | 50min 00s |
+
+- **`300` (5min) when a cdn is in front**, which is the normal setup. It removes more than 90% of the calls from
+  roughly 3,000 requests per day upwards and costs 5 of the 45 minutes the edge is stale anyway.
+- **`30` to `60` when `cdnCache` is off** and the server page cache is the only layer, because then the interval is
+  the whole staleness a visitor can see.
+- **`0` when an editor has to see a publish immediately** without a cdn purge, for example on a staging or review
+  deployment.
 
 The value is stored in the cache which evaluates the dependency, so a shared cache (redis, memcached) means one call
 per interval for the whole cluster, a per node cache (file cache, and every serverless instance has its own) means one
